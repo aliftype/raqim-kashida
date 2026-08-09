@@ -16,7 +16,7 @@ mod resolve;
 #[cfg(test)]
 mod tests;
 
-pub use builtin::{builtin_pattern_set, is_builtin_pattern_set};
+pub use builtin::{builtin_pattern_set, builtin_pattern_set_names, is_builtin_pattern_set};
 pub use error::{CompileError, CompileErrorKind};
 pub use pattern::{compile_pattern_text, PatternSet};
 

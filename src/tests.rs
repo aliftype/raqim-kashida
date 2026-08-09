@@ -1,4 +1,4 @@
-use crate::builtin::{builtin_pattern_set, is_builtin_pattern_set};
+use crate::builtin::{builtin_pattern_set, builtin_pattern_set_names, is_builtin_pattern_set};
 use crate::grapheme::{
     form_of, joined_runs, joins_left, joins_right, split_graphemes, JoiningForm,
 };
@@ -301,9 +301,15 @@ fn rejects_malformed_pattern_lines() {
 
 #[test]
 fn builtin_sets_resolve_and_are_named() {
-    assert!(is_builtin_pattern_set("arabic-simple"));
-    assert!(is_builtin_pattern_set("arabic-naskh"));
-    assert!(is_builtin_pattern_set("syriac"));
+    assert_eq!(
+        builtin_pattern_set_names(),
+        ["arabic-simple", "arabic-naskh", "syriac"]
+    );
+    // Every listed name resolves, and nothing else does.
+    for name in builtin_pattern_set_names() {
+        assert!(is_builtin_pattern_set(name), "{name}");
+        assert!(builtin_pattern_set(name).is_some(), "{name}");
+    }
     assert!(!is_builtin_pattern_set("nope"));
     assert!(builtin_pattern_set("nope").is_none());
 }
