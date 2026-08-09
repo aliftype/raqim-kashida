@@ -5,6 +5,7 @@ use std::sync::OnceLock;
 
 const ARABIC_SIMPLE_TEXT: &str = include_str!("../data/arabic-simple.pat");
 const ARABIC_NASKH_TEXT: &str = include_str!("../data/arabic-naskh.pat");
+const SYRIAC_TEXT: &str = include_str!("../data/syriac.pat");
 
 fn arabic_simple_set() -> &'static PatternSet {
     static SET: OnceLock<PatternSet> = OnceLock::new();
@@ -20,10 +21,15 @@ fn arabic_naskh_set() -> &'static PatternSet {
     })
 }
 
+fn syriac_set() -> &'static PatternSet {
+    static SET: OnceLock<PatternSet> = OnceLock::new();
+    SET.get_or_init(|| compile_pattern_text(SYRIAC_TEXT).expect("built-in \"syriac\" compiles"))
+}
+
 /// Whether `name` refers to a built-in pattern set, without compiling it,
 /// unlike [`builtin_pattern_set`].
 pub fn is_builtin_pattern_set(name: &str) -> bool {
-    matches!(name, "arabic-simple" | "arabic-naskh")
+    matches!(name, "arabic-simple" | "arabic-naskh" | "syriac")
 }
 
 /// The built-in pattern set of that name.
@@ -31,6 +37,7 @@ pub fn builtin_pattern_set(name: &str) -> Option<&'static PatternSet> {
     match name {
         "arabic-simple" => Some(arabic_simple_set()),
         "arabic-naskh" => Some(arabic_naskh_set()),
+        "syriac" => Some(syriac_set()),
         _ => None,
     }
 }

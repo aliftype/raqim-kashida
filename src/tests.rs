@@ -303,8 +303,89 @@ fn rejects_malformed_pattern_lines() {
 fn builtin_sets_resolve_and_are_named() {
     assert!(is_builtin_pattern_set("arabic-simple"));
     assert!(is_builtin_pattern_set("arabic-naskh"));
+    assert!(is_builtin_pattern_set("syriac"));
     assert!(!is_builtin_pattern_set("nope"));
     assert!(builtin_pattern_set("nope").is_none());
+}
+
+#[test]
+fn syriac_ranks_junctions_outside_in() {
+    // LibreOffice picks Syriac positions outside-in: from the letter before
+    // the last toward the word's midpoint, then from the start toward it.
+    // These are the orders GetWordKashidaPositionSyriac yields, most
+    // preferred first.
+    let expected: &[(usize, &[u32])] = &[
+        (2, &[0]),
+        (3, &[1, 0]),
+        (4, &[2, 1, 0]),
+        (5, &[3, 2, 0, 1]),
+        (6, &[4, 3, 2, 0, 1]),
+        (7, &[5, 4, 3, 0, 1, 2]),
+        (8, &[6, 5, 4, 3, 0, 1, 2]),
+        (9, &[7, 6, 5, 4, 0, 1, 2, 3]),
+        (10, &[8, 7, 6, 5, 4, 0, 1, 2, 3]),
+    ];
+    for &(letters, order) in expected {
+        // Beth is dual-joining, so the whole word is one run.
+        let word = "ܒ".repeat(letters);
+        let mut points = builtin_points("syriac", &word);
+        points.sort_by_key(|&(index, priority)| (std::cmp::Reverse(priority), index));
+        let ranked: Vec<u32> = points.iter().map(|&(index, _)| index).collect();
+        assert_eq!(ranked, order, "run of {letters} letters");
+    }
+}
+
+#[test]
+fn syriac_matches_the_libreoffice_test_vectors() {
+    // i18nutil/qa/cppunit/test_kashida.cxx walks the whole preference order
+    // by disabling each position in turn. Its words are used verbatim here.
+    let ranked = |word: &str| {
+        let mut points = builtin_points("syriac", word);
+        points.sort_by_key(|&(index, priority)| (std::cmp::Reverse(priority), index));
+        points.iter().map(|&(index, _)| index).collect::<Vec<_>>()
+    };
+    // testSyriac(): seven letters yield 5, 4, 3, 0, 1, 2.
+    assert_eq!(ranked("ܥܥܥܥܥܥܥ"), vec![5, 4, 3, 0, 1, 2]);
+    // testSyriacVowelMarks(): the same seven letters carrying vowel marks
+    // yield the same order (tdf#168698 — the midpoint counts letters only).
+    assert_eq!(
+        ranked("ܥܥܥܥܥ\u{073F}\u{073E}ܥ\u{073F}\u{073E}ܥ\u{073F}\u{073E}"),
+        vec![5, 4, 3, 0, 1, 2]
+    );
+    // testSyriac() also checks that a kashida the user typed wins, at its
+    // own index.
+    assert_eq!(ranked("ܥܥـܥܥܥܥ")[0], 2);
+}
+
+#[test]
+fn syriac_never_breaks_lomadh_olaph() {
+    // "No Kashida character should be inserted between the letter sequence:
+    // Lomadh, Olaph." LibreOffice's Syriac path never checks for it.
+    assert_eq!(builtin_points("syriac", "ܠܐ"), Vec::new());
+    // Only that pair: a lomadh before anything else still elongates.
+    assert_eq!(builtin_points("syriac", "ܠܒ"), vec![(0, 8)]);
+}
+
+#[test]
+fn syriac_letters_that_take_no_kashida_after_them() {
+    // "The following letters should not receive a kashida after them:
+    // Olaph; Dolath; He; Waw; Zayn; Sodhe; Rish; Taw; Dotless Dolath Rish."
+    // None of them joins forward, so no junction ever follows one.
+    for word in ["ܐܒ", "ܕܒ", "ܗܒ", "ܘܒ", "ܙܒ", "ܨܒ", "ܪܒ", "ܬܒ", "ܖܒ"] {
+        assert_eq!(builtin_points("syriac", word), Vec::new(), "{word}");
+    }
+}
+
+#[test]
+fn syriac_ladders_apply_to_each_joined_run() {
+    // Rish does not join forward, so ܡܪܝܡ is two runs of two letters and
+    // each gets its own ladder.
+    assert_eq!(builtin_points("syriac", "ܡܪܝܡ"), vec![(0, 8), (2, 8)]);
+    // A user-inserted kashida still outranks every position.
+    assert_eq!(
+        builtin_points("syriac", "ܡـܝܡ"),
+        vec![(0, 3), (1, 9), (2, 8)]
+    );
 }
 
 #[test]
