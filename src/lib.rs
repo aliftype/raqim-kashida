@@ -60,6 +60,9 @@ mod pattern;
 mod rasm;
 mod resolve;
 
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+pub mod wasm;
+
 #[cfg(test)]
 mod tests;
 
@@ -72,6 +75,10 @@ use resolve::resolve_run;
 
 /// A point where a kashida may be inserted.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[cfg_attr(
+    all(target_arch = "wasm32", target_os = "unknown"),
+    derive(serde::Serialize)
+)]
 pub struct KashidaPoint {
     /// The grapheme cluster index the kashida goes after.
     pub index: u32,
