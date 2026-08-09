@@ -23,12 +23,13 @@ pub use pattern::{compile_pattern_text, PatternSet};
 use grapheme::{is_bare_tatweel_at, joined_runs, split_graphemes, KASHIDA};
 use resolve::resolve_run;
 
-/// A junction where a kashida may be inserted.
+/// A point where a kashida may be inserted.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct KashidaPoint {
-    /// Insert a kashida after this grapheme-cluster index.
+    /// The grapheme cluster index the kashida goes after.
     pub index: u32,
-    /// 0–9, higher = stronger, filled first.
+    /// The kashida point priority, from 0–9, higher priority means a more
+    /// preferable insertion point.
     pub priority: u8,
 }
 
@@ -59,10 +60,14 @@ fn strip_bare_tatweel(word: &str) -> String {
 
 /// Kashida insertion points for `word` under the given pattern set.
 ///
-/// Bare user kashidas are stripped first (unless asked not to); a kept one
-/// is an ordinary run letter that patterns can target, like
-/// the built-in simple set's `@Tatweel 9` rule. Returns the (possibly stripped)
-/// text along with the points, whose indices refer to it.
+/// Any **bare** kashida already in the text is stripped first, unless
+/// `remove_existing_kashida` is `false`. A kashida that serves as a seat for a
+/// small alef (U+0670) or a combining hamza (U+0654 and U+0655) is not bare
+/// and is always kept, as the combination serves as a unit in Quranic
+/// orthography.
+///
+/// Returns the (possibly stripped) text along with the points, whose
+/// indices refer to it.
 ///
 /// # Example
 ///

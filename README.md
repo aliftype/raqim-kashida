@@ -24,22 +24,7 @@ points to justify the text.
 
 ## API
 
-| Function                                          | Returns                             |
-| ------------------------------------------------- | ----------------------------------- |
-| `compile_pattern_text(text)`                      | a `PatternSet`                      |
-| `builtin_pattern_set(name)`                       | a built-in set                      |
-| `is_builtin_pattern_set(name)`                    | whether that name is built in       |
-| `find_kashida_points(word, set, remove_existing)` | `(cleaned_text, Vec<KashidaPoint>)` |
-| `find_kashida_points_patterns(word, set)`         | `Vec<KashidaPoint>`                 |
-
-A `KashidaPoint` is an `index` (the grapheme cluster the kashida goes after)
-and a `priority` of 0–9 (with higher meaning more preferable).
-
-`find_kashida_points` first strips any **bare** kashida already in the text
-(unless told not to). A _kashida_ that serves as a seat for small _alef_
-(U+0670) or a combining _hamza_ (U+0654 and U+0655) is always kept, as the
-combination serves as a unit in Quranic orthography. It returns the cleaned
-text and the `KashidaPoint` indices are relative to it.
+The API is documented at [docs.rs](https://docs.rs/raqim-kashida).
 
 ## Pattern sets
 
