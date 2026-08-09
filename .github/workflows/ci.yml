@@ -14,3 +14,11 @@ jobs:
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test
+
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jetli/wasm-pack-action@v0.4.0
+      - run: cargo clippy --target wasm32-unknown-unknown --all-targets -- -D warnings
+      - run: wasm-pack build --target web

@@ -45,6 +45,17 @@ To run the tests:
 cargo test
 ```
 
+### WASM
+
+Building the WASM binding also requires wasm-pack:
+
+```sh
+wasm-pack build --target web
+```
+
+Because the _kashida_ point indices are grapheme-cluster indices, a JavaScript
+caller that segments the same text itself must use a matching Unicode version.
+
 ## Pattern sets
 
 Pattern sets describe where _kashida_ can be inserted and the priority of each
