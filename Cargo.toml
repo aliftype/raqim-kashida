@@ -1,0 +1,19 @@
+[package]
+name = "raqim-kashida"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+description = "Kashida (tatweel) insertion-point finding driven by pattern sets."
+license = "MIT"
+repository = "https://github.com/aliftype/raqim-kashida"
+readme = "README.md"
+keywords = ["arabic", "kashida", "tatweel", "justification", "typesetting"]
+categories = ["text-processing", "internationalization"]
+include = ["/src/**/*", "/data/*.pat", "/README.md", "/LICENSE"]
+
+[lib]
+name = "kashida"
+
+[dependencies]
+icu_properties = { version = "2.2", features = ["compiled_data"] }
+icu_segmenter = { version = "2.2", features = ["compiled_data"] }

@@ -1,0 +1,487 @@
+use crate::builtin::{builtin_pattern_set, is_builtin_pattern_set};
+use crate::grapheme::{
+    form_of, joined_runs, joins_left, joins_right, split_graphemes, JoiningForm,
+};
+use crate::pattern::compile_pattern_text;
+use crate::rasm::{rasm_matches, resolve_group_name};
+use crate::{find_kashida_points, find_kashida_points_patterns};
+use icu_properties::props::JoiningGroup;
+
+fn points(word: &str, text: &str) -> Vec<(u32, u8)> {
+    let set = compile_pattern_text(text).expect("pattern compiles");
+    find_kashida_points_patterns(word, &set)
+        .iter()
+        .map(|k| (k.index, k.priority))
+        .collect()
+}
+
+fn builtin_points(name: &str, word: &str) -> Vec<(u32, u8)> {
+    let set = builtin_pattern_set(name).expect("built-in set exists");
+    find_kashida_points_patterns(word, set)
+        .iter()
+        .map(|k| (k.index, k.priority))
+        .collect()
+}
+
+fn err_msg(text: &str) -> String {
+    compile_pattern_text(text)
+        .expect_err("pattern should fail to compile")
+        .to_string()
+}
+
+#[test]
+fn resolve_group_name_matches_long_names_only() {
+    assert_eq!(resolve_group_name("@Beh").unwrap(), JoiningGroup::Beh);
+    assert_eq!(
+        resolve_group_name("@Teh_Marbuta").unwrap(),
+        JoiningGroup::TehMarbuta
+    );
+    assert_eq!(
+        resolve_group_name("@Farsi_Yeh").unwrap(),
+        JoiningGroup::FarsiYeh
+    );
+
+    // Un-prefixed / mis-cased / icu-style / unknown names are rejected.
+    assert!(resolve_group_name("Beh").is_err());
+    assert!(resolve_group_name("@TehMarbuta").is_err());
+    assert!(resolve_group_name("@teh_marbuta").is_err());
+    assert!(resolve_group_name("@beh").is_err());
+    assert!(resolve_group_name("@Nope").is_err());
+    assert!(resolve_group_name("@No_Joining_Group").is_err());
+}
+
+#[test]
+fn form_of_derives_positional_form() {
+    let g = split_graphemes("بنت"); // beh-noon-teh, all dual-joining
+    assert_eq!(form_of(&g, 0), JoiningForm::Initial);
+    assert_eq!(form_of(&g, 1), JoiningForm::Medial);
+    assert_eq!(form_of(&g, 2), JoiningForm::Final);
+    assert_eq!(form_of(&split_graphemes("ب"), 0), JoiningForm::Isolated);
+}
+
+#[test]
+fn joins_left_tests() {
+    let cases: &[(&str, usize, bool)] = &[
+        ("بيت", 2, false),  // final teh, nothing to its left
+        ("Test", 0, false), // non-joining
+        ("aب", 0, false),   // non-joining before joining
+        ("بa", 0, false),   // non-joining after joining
+        ("بaب", 0, false),
+        ("نص", 0, true),
+        ("نَص", 0, true),  // skips one marks
+        ("نَّص", 0, true),  // skips more than one mark
+        ("أب", 0, false), // alef is right-joining
+        ("أَب", 0, false), // skips one mark
+    ];
+    for &(word, index, expected) in cases {
+        assert_eq!(
+            joins_left(&split_graphemes(word), index),
+            expected,
+            "{word:?} @ {index}"
+        );
+    }
+}
+
+#[test]
+fn joins_right_tests() {
+    let cases: &[(&str, usize, bool)] = &[
+        ("بيت", 0, false), // initial beh, nothing to its right
+        ("بيت", 2, true),
+        ("Test", 0, false), // non-joining
+        ("بa", 1, false),   // non-joining after joining
+        ("معطار", 3, true), // skips one mark
+        ("معطَار", 3, true), // skips one mark
+        ("معطَّار", 3, true), // skips more than one mark
+        ("ار", 1, false),   // reh is right-joining
+        ("اَر", 1, false),   // skips one mark
+    ];
+    for &(word, index, expected) in cases {
+        assert_eq!(
+            joins_right(&split_graphemes(word), index),
+            expected,
+            "{word:?} @ {index}"
+        );
+    }
+}
+
+#[test]
+fn rasm_folding() {
+    assert!(rasm_matches(
+        JoiningGroup::Beh,
+        JoiningGroup::Noon,
+        JoiningForm::Medial
+    ));
+    assert!(rasm_matches(
+        JoiningGroup::Beh,
+        JoiningGroup::Yeh,
+        JoiningForm::Initial
+    ));
+    assert!(!rasm_matches(
+        JoiningGroup::Beh,
+        JoiningGroup::Noon,
+        JoiningForm::Final
+    ));
+    assert!(!rasm_matches(
+        JoiningGroup::Beh,
+        JoiningGroup::Yeh,
+        JoiningForm::Isolated
+    ));
+
+    // The identical group always matches.
+    assert!(rasm_matches(
+        JoiningGroup::Beh,
+        JoiningGroup::Beh,
+        JoiningForm::Final
+    ));
+
+    // Feh and qaf merge in initial/medial only.
+    assert!(rasm_matches(
+        JoiningGroup::Feh,
+        JoiningGroup::Qaf,
+        JoiningForm::Medial
+    ));
+    assert!(!rasm_matches(
+        JoiningGroup::Feh,
+        JoiningGroup::Qaf,
+        JoiningForm::Final
+    ));
+}
+
+#[test]
+fn letters_match_only_themselves() {
+    assert_eq!(points("بت", "ب2ت"), vec![(0, 2)]);
+    assert_eq!(points("نت", "ب2ت"), Vec::new()); // noon is not beh
+    assert_eq!(points("نت", "ٮ2ت"), Vec::new()); // dotless beh does not fold
+}
+
+#[test]
+fn max_priority_wins_at_a_junction() {
+    assert_eq!(points("بت", "ب2ت\nب5ت"), vec![(0, 5)]);
+}
+
+#[test]
+fn absent_digit_is_no_candidate_explicit_zero_is_weakest() {
+    assert_eq!(points("بت", "بت"), Vec::new()); // no digit
+    assert_eq!(points("بت", "ب0ت"), vec![(0, 0)]); // priority 0
+}
+
+#[test]
+fn suppression_beats_any_priority() {
+    assert_eq!(points("بت", "ب9ت\nب!ت"), Vec::new());
+}
+
+#[test]
+fn length_guards_gate_on_joined_run_length() {
+    assert_eq!(points("بتر", "[3]ب2ت"), vec![(0, 2)]);
+    assert_eq!(points("بتر", "[4]ب2ت"), Vec::new());
+    assert_eq!(points("بتر", "[2-3]ب2ت"), vec![(0, 2)]);
+    assert_eq!(points("بتبت", "[2-3]ب2ت"), Vec::new());
+    assert_eq!(points("بت", "[2+]ب2ت"), vec![(0, 2)]);
+    assert_eq!(points("بت", "[3+]ب2ت"), Vec::new());
+}
+
+#[test]
+fn priority_steps_down_as_run_grows() {
+    let steps = |word: &str| points(word, "[4+]ب6\\3ت");
+    assert_eq!(steps("بتنن"), vec![(0, 6)]); // len 4
+    assert_eq!(steps("بتننن"), vec![(0, 5)]); // len 5
+    assert_eq!(steps("بتنننن"), vec![(0, 4)]); // len 6
+    assert_eq!(steps("بتننننن"), vec![(0, 3)]); // len 7
+    assert_eq!(steps("بتنننننن"), vec![(0, 3)]); // len 8: holds at 3
+}
+
+#[test]
+fn lam_alef_is_suppressed_by_the_pattern_sets() {
+    // The pattern allows kashida before any alef, lam-alef has no special
+    // treatment.
+    assert_eq!(points("لا", "2ا"), vec![(0, 2)]);
+    assert_eq!(points("با", "2ا"), vec![(0, 2)]);
+    // But built-in patterns suppress kashida in lam-lef
+    assert_eq!(builtin_points("arabic-simple", "لا"), Vec::new());
+    assert_eq!(builtin_points("arabic-naskh", "لا"), Vec::new());
+    // Only before an alef in simple pattern (in naskh no kashida after any lam).
+    assert_eq!(builtin_points("arabic-simple", "لب"), vec![(0, 3)]);
+}
+
+#[test]
+fn inline_group_set_matches_any_of_its_groups() {
+    let set = "{@Beh @Noon @Yeh} 5 ت";
+    assert_eq!(points("بت", set), vec![(0, 5)]);
+    assert_eq!(points("نت", set), vec![(0, 5)]);
+    assert_eq!(points("صت", set), Vec::new());
+}
+
+#[test]
+fn group_sets_accept_literals_and_tatweel() {
+    let set = "{=Seen ب} 5 ت";
+    assert_eq!(points("ست", set), vec![(0, 5)]); // group member
+    assert_eq!(points("بت", set), vec![(0, 5)]); // literal member
+    assert_eq!(points("نت", set), Vec::new());
+    assert_eq!(points("بـت", "{@Tatweel} 9"), vec![(1, 9)]);
+}
+
+#[test]
+fn set_members_behave_as_they_do_outside() {
+    // A one-element set is the same as the bare reference.
+    assert_eq!(points("نت", "@Beh 5 ت"), points("نت", "{@Beh} 5 ت"));
+    assert_eq!(points("نت", "{@Beh} 5 ت"), vec![(0, 5)]);
+}
+
+#[test]
+fn exact_group_reference_does_not_fold() {
+    // `=Name` matches that Joining_Group alone. `@Name` folds through the rasm
+    // classes.
+    assert_eq!(points("بت", "=Beh 5 ت"), vec![(0, 5)]);
+    assert_eq!(points("نت", "=Beh 5 ت"), Vec::new()); // initial noon: no fold
+    assert_eq!(points("نت", "{=Beh} 5 ت"), Vec::new()); // nor inside a set
+    assert_eq!(points("نت", "^=Beh 5 ت"), vec![(0, 5)]); // complement form
+    assert!(err_msg("=Foo 5 ت").contains("Unknown"));
+    // Tatweel is a literal, so folding does not apply: both prefixes name it.
+    assert_eq!(points("بـت", "=Tatweel 9"), points("بـت", "@Tatweel 9"));
+}
+
+#[test]
+fn group_in_no_rasm_class_matches_itself_alone() {
+    // Seen folds through no rasm class, so `@Seen` and `=Seen` are the same.
+    assert_eq!(points("ست", "@Seen 5 *"), vec![(0, 5)]);
+    assert_eq!(points("ست", "=Seen 5 *"), vec![(0, 5)]);
+}
+
+#[test]
+fn not_group_set_matches_any_joining_letter_not_in_set() {
+    let set = "^{@Beh @Noon} 5 ت";
+    assert_eq!(points("صت", set), vec![(0, 5)]);
+    assert_eq!(points("بت", set), Vec::new());
+    assert_eq!(points("نت", set), Vec::new());
+    // ^@Name without braces is the lone-group complement.
+    assert_eq!(points("صت", "^@Beh 5 ت"), vec![(0, 5)]);
+    assert_eq!(points("بت", "^@Beh 5 ت"), Vec::new());
+}
+
+#[test]
+fn group_folds_to_tooth_initial_medial_strict_when_final() {
+    assert_eq!(points("نت", "@Beh 5 ت"), vec![(0, 5)]); // initial noon
+    assert_eq!(points("يت", "@Beh 5 ت"), vec![(0, 5)]); // initial yeh
+    assert_eq!(points("بنت", "@Beh 5 ت"), vec![(1, 5)]); // medial noon
+    assert_eq!(points("تب", "ت 5 @Beh ."), vec![(0, 5)]); // final beh matches
+    assert_eq!(points("تن", "ت 5 @Beh ."), Vec::new()); // final noon does not
+}
+
+#[test]
+fn ignores_comments_and_blank_lines() {
+    assert_eq!(
+        points("بت", "# a comment\n\nب2ت  # trailing\n"),
+        vec![(0, 2)]
+    );
+}
+
+#[test]
+fn rejects_malformed_pattern_lines() {
+    assert!(err_msg("[3ب2ت").contains("Unterminated length guard"));
+    assert!(err_msg("[x]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[x+]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[2-y]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[4.5]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[-3]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("@").contains("Empty group name"));
+    assert!(err_msg("=").contains("Empty group name"));
+    assert!(err_msg("ب.ت").contains("Token after a trailing"));
+    assert!(err_msg("5").contains("Pattern has no letters"));
+    assert!(err_msg("@Nope 2 ت").contains("Unknown Unicode Joining_Group name"));
+    assert!(err_msg("ب3\\6ت").contains("must not increase"));
+    assert!(err_msg("ب9\\خت").contains("Expected a digit after"));
+    assert!(err_msg("ب\\3ت").contains("must follow a priority digit"));
+    assert!(err_msg("{@Beh @Nope} 2 ت").contains("Unknown Unicode Joining_Group"));
+    assert!(err_msg("{@Beh Noon} 2 ت").contains("Stray character")); // un-prefixed = literals
+    assert!(err_msg("> ب2ت").contains("Stray character")); // no run-claiming marker
+    assert!(err_msg("{@Beh 2 ت").contains("Unterminated “{”"));
+    assert!(err_msg("{} 2 ت").contains("Empty “{}”"));
+    assert!(err_msg("ب 2 ^ت").contains("must be followed by “{”, “@”, or “=”"));
+}
+
+#[test]
+fn builtin_sets_resolve_and_are_named() {
+    assert!(is_builtin_pattern_set("arabic-simple"));
+    assert!(is_builtin_pattern_set("arabic-naskh"));
+    assert!(!is_builtin_pattern_set("nope"));
+    assert!(builtin_pattern_set("nope").is_none());
+}
+
+#[test]
+fn naskh_pattern_tests() {
+    // The heh-ending rule lands a kashida before the final heh.
+    assert_eq!(builtin_points("arabic-naskh", "بحه"), vec![(1, 9)]);
+    // No kashida before an ain.
+    assert_eq!(builtin_points("arabic-naskh", "مسعد"), vec![(2, 3)]);
+    // None after a kaf or lam.
+    assert_eq!(builtin_points("arabic-naskh", "كلمة"), vec![(2, 9)]);
+    // None before a medial heh.
+    assert_eq!(builtin_points("arabic-naskh", "سهلة"), Vec::new());
+    // None before a final yeh.
+    assert_eq!(builtin_points("arabic-naskh", "سعي"), Vec::new());
+    // The heh ending is the one naskh rule with no length gate.
+    assert_eq!(builtin_points("arabic-naskh", "به"), vec![(0, 9)]);
+}
+
+#[test]
+fn simple_pattern_tests() {
+    // Rule 2 (after initial seen) at junction 0, rule 7 before the
+    // final teh at junction 1.
+    assert_eq!(builtin_points("arabic-simple", "سبت"), vec![(0, 8), (1, 3)]);
+    // Rule 2 carries no final-yeh exception: seen before a final yeh takes 8.
+    assert_eq!(builtin_points("arabic-simple", "سي"), vec![(0, 8)]);
+    // بيبت has no final reh/yeh, so rule 5 must stay silent; only rule 7
+    // applies, before the final teh.
+    assert_eq!(builtin_points("arabic-simple", "بيبت"), vec![(2, 3)]);
+    // The genuine shape still fires: a medial tooth before a final yeh.
+    assert_eq!(builtin_points("arabic-simple", "بني"), vec![(0, 5), (1, 3)]);
+}
+
+#[test]
+fn zwnj_breaks_the_join() {
+    // The ZWNJ clusters into the beh grapheme; the junction it suppresses
+    // must not host a kashida, and both letters shape isolated.
+    assert_eq!(points("ب\u{200C}ت", "ب2ت"), Vec::new());
+    assert_eq!(builtin_points("arabic-simple", "ب\u{200C}ت"), Vec::new());
+    let g = split_graphemes("ب\u{200C}ت");
+    assert_eq!(form_of(&g, 0), JoiningForm::Isolated);
+    assert_eq!(form_of(&g, 1), JoiningForm::Isolated);
+}
+
+#[test]
+fn stray_pattern_characters_are_rejected() {
+    assert!(err_msg("{=Seen x} 5 ت").contains("Stray character")); // Non_Joining
+    assert!(err_msg("ب\u{0662}ت").contains("Stray character")); // Arabic-Indic ٢
+    assert!(err_msg("ب2ت]").contains("Stray character"));
+    assert!(err_msg("[2] > ب2ت").contains("Stray character")); // '>' after guard
+    assert!(err_msg("ب2ت // note").contains("Stray character")); // '#' comments only
+}
+
+#[test]
+fn zwj_zwnj() {
+    // ZWJ makes beh take a final form but dal is right-joining still.
+    assert_eq!(points("د\u{200D}ب", "د2ب"), Vec::new());
+    // Between two dual joiners it changes nothing.
+    assert_eq!(points("ب\u{200D}ت", "ب2ت"), vec![(0, 2)]);
+    // A ZWNJ severs the join no matter where a ZWJ sits around it.
+    assert_eq!(points("ب\u{200D}\u{200C}ت", "ب2ت"), Vec::new());
+    assert_eq!(points("ب\u{200C}\u{200D}ت", "ب2ت"), Vec::new());
+    // A ZWJ after feh makes it medial, so a final-matching pattern
+    // must not fire.
+    assert_eq!(points("سف", "8 ف ."), vec![(0, 8)]);
+    assert_eq!(points("سف\u{200D}", "8 ف ."), Vec::new());
+}
+
+#[test]
+fn manual_tatweel() {
+    let set = builtin_pattern_set("arabic-simple").unwrap();
+    // NFC puts a vowel before a tatweel-seated hamza. The tatweel still
+    // carries the hamza and must survive stripping.
+    let seated = "ب\u{0640}\u{064E}\u{0654}ت";
+    assert_eq!(find_kashida_points(seated, set, true).0, seated);
+    // Hamza below is a seat as well.
+    let below = "ب\u{0640}\u{0655}ت";
+    assert_eq!(find_kashida_points(below, set, true).0, below);
+    // A tatweel carrying only harakat is elongation: strip it and the vowel
+    // reattaches to its letter.
+    let harakah = "ب\u{0640}\u{064E}ت";
+    assert_eq!(find_kashida_points(harakah, set, true).0, "ب\u{064E}ت");
+    // A kept bare kashida is a run letter: it counts toward length guards
+    // and matches `*` like anything else.
+    assert_eq!(points("بـتر", "[4]ت2ر"), vec![(2, 2)]);
+    assert_eq!(points("بـت", "ب2*"), vec![(0, 2)]);
+    // The tatweel is an ordinary literal token: `ـ 9` lands after an
+    // existing kashida, i.e. at the kashida's own index.
+    assert_eq!(points("بـت", "ـ 9"), vec![(1, 9)]);
+    // `@Tatweel` is the readable spelling of the same literal.
+    assert_eq!(points("بـت", "@Tatweel 9"), vec![(1, 9)]);
+    // naskh has no rule targeting it, so a kept kashida just stays in the
+    // text.
+    let set = builtin_pattern_set("arabic-naskh").unwrap();
+    let (_, merged) = find_kashida_points("سـبح", set, false);
+    let merged: Vec<_> = merged.iter().map(|k| (k.index, k.priority)).collect();
+    assert_eq!(merged, vec![(2, 3)]);
+}
+
+#[test]
+fn existing_kashida_matches_like_any_letter() {
+    let set = compile_pattern_text("ـ 5").expect("pattern compiles");
+    let (_, pts) = find_kashida_points("بـت", &set, false);
+    let pts: Vec<_> = pts.iter().map(|k| (k.index, k.priority)).collect();
+    assert_eq!(pts, vec![(1, 5)]);
+    // Stripped by default, there is nothing left for it to match.
+    assert_eq!(find_kashida_points("بـت", &set, true).1, Vec::new());
+}
+
+#[test]
+fn conflicting_weights_at_one_junction_are_rejected() {
+    assert!(err_msg("ب2 3ت").contains("Conflicting weights"));
+    // '!' silently overwritten by a digit was the worst case.
+    assert!(err_msg("ب!2ت").contains("Conflicting weights"));
+}
+
+#[test]
+fn degenerate_length_guards_are_rejected() {
+    // No run of fewer than 2 letters has a junction; empty ranges match
+    // nothing. All of these compiled silently dead before.
+    assert!(err_msg("[0]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[1]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[1+]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[3-2]ب2ت").contains("Invalid length guard"));
+}
+
+#[test]
+fn boundary_edge_weights_are_rejected() {
+    // A weight in the gap between a token and a `.` can never land.
+    assert!(err_msg(". 5 ب ت").contains("Weight outside the run"));
+    assert!(err_msg("ب 5 .").contains("Weight outside the run"));
+}
+
+#[test]
+fn group_name_stops_at_non_name_characters() {
+    // '@Behت' is '@Beh' followed by a teh literal, not a group-name typo.
+    assert_eq!(points("بتت", "@Behت 2 ت"), vec![(1, 2)]);
+}
+
+#[test]
+fn find_kashida_points_strips_or_keeps_user_tatweel() {
+    let set = builtin_pattern_set("arabic-simple").unwrap();
+    // A bare tatweel is stripped when removeExisting is set.
+    let (cleaned, _) = find_kashida_points("بـت", set, true);
+    assert_eq!(cleaned, "بت");
+    // Kept, rule 1 (`ـ 9`) targets it: priority 9 at the kashida's own index.
+    let (cleaned, pts) = find_kashida_points("بـت", set, false);
+    assert_eq!(cleaned, "بـت");
+    assert!(pts.iter().any(|k| k.index == 1 && k.priority == 9));
+}
+
+#[test]
+fn readme_length_ladder_words() {
+    // The README's length-dependent priority walkthrough. In the مبتعث words
+    // the junction is teh–ain: teh is in the beh Joining_Group.
+    let p = |w: &str| points(w, "[4+] @Beh 9\\6 @Ain");
+    assert_eq!(p("بعثة"), vec![(0, 9)]); // four-letter run, the floor
+    assert_eq!(p("مبتعث"), vec![(2, 8)]); // five
+    assert_eq!(p("المبتعث"), vec![(4, 7)]); // six: ال's alef stands apart
+    assert_eq!(p("المبتعثة"), vec![(4, 6)]); // seven: reaches the second digit
+}
+
+#[test]
+fn every_junction_in_a_run_already_joins() {
+    // A run ends at the first letter that cannot join on.
+    let words =
+        "بيت لا دب بد مررت الله سـبح ب\u{200C}ت ب\u{200D}ت نَّص \u{064E}بت بـ وا أبد كتاب لآ دا";
+    for word in words.split(' ') {
+        let graphemes = split_graphemes(word);
+        for run in joined_runs(&graphemes) {
+            // Every member but the last one hosts a junction.
+            let (_, hosts) = run.split_last().expect("a run is never empty");
+            for &index in hosts {
+                assert!(
+                    joins_left(&graphemes, index),
+                    "{word:?}: grapheme {index} does not join forward"
+                );
+            }
+        }
+    }
+}
