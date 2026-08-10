@@ -586,3 +586,20 @@ fn a_later_rule_can_undo_a_suppression_and_impose_one() {
     assert_eq!(points("بت", "ب!ت\nب5ت"), vec![(0, 5)]);
     assert_eq!(points("بت", "ب5ت\nب!ت"), Vec::new());
 }
+
+#[test]
+fn use_splices_a_builtin_in() {
+    // naskh on its own puts 9 before the final heh.
+    assert_eq!(builtin_points("arabic-naskh", "بحه"), vec![(1, 9)]);
+    // Importing it and softening that one point leaves the rest alone.
+    assert_eq!(points("بحه", "use arabic-naskh\n* 2 @Heh ."), vec![(1, 2)]);
+    // With no rules of its own an import is just the set itself.
+    assert_eq!(points("بحه", "use arabic-naskh"), vec![(1, 9)]);
+}
+
+#[test]
+fn rejects_malformed_imports() {
+    assert!(err_msg("use nope").contains("Unknown pattern set"));
+    // Only a whole `use` word counts; anything else is an ordinary line.
+    assert!(err_msg("used arabic-naskh").contains("Stray character"));
+}

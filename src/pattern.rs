@@ -95,6 +95,8 @@ fn set_weight(
 
 // A recursive-descent parser over one comment-stripped line:
 //
+//   line      ::= (use | pattern)? comment?
+//   use       ::= "use" set_name
 //   pattern   ::= guard? element+
 //   guard     ::= "[" bound ("+" | "-" bound)? "]"
 //   element   ::= token | weight | "."
@@ -356,6 +358,17 @@ fn parse_line(raw: &str) -> Result<Option<CompiledPattern>, CompileErrorKind> {
     .map(Some)
 }
 
+// use ::= "use" set_name
+// for the rules after it to override.
+fn parse_use(line: &str) -> Option<&str> {
+    let rest = line.strip_prefix("use")?;
+    if rest.starts_with([' ', '\t']) {
+        Some(rest.trim())
+    } else {
+        None
+    }
+}
+
 /// Compiles pattern text into a [`PatternSet`].
 pub fn compile_pattern_text(text: &str) -> Result<PatternSet, CompileError> {
     let mut patterns = Vec::new();
@@ -365,6 +378,12 @@ pub fn compile_pattern_text(text: &str) -> Result<PatternSet, CompileError> {
             kind,
             line_number: index + 1,
         };
+        if let Some(name) = parse_use(&strip_comment(raw)) {
+            let imported = crate::builtin::builtin_pattern_set(name)
+                .ok_or_else(|| context(CompileErrorKind::UnknownImport(name.to_string())))?;
+            patterns.extend(imported.patterns.iter().cloned());
+            continue;
+        }
         if let Some(pattern) = parse_line(raw).map_err(context)? {
             patterns.push(pattern);
         }

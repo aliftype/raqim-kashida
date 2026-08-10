@@ -53,8 +53,9 @@ Each non-blank line is a **pattern**.
 
 ```
 text      ::= line ("\n" line)*
-line      ::= pattern? comment?
+line      ::= (use | pattern)? comment?
 comment   ::= "#" anything
+use       ::= "use" set_name
 
 pattern   ::= guard? element+
 guard     ::= "[" bound ("+" | "-" bound)? "]"
@@ -68,6 +69,7 @@ reference ::= ("@" | "=") name
 weight    ::= digit ("\" digit)? | "!"
 
 name      ::= (ALPHA | "_")+
+set_name  ::= (ALPHA | DIGIT | "-" | "_")+
 bound     ::= digit+
 letter    ::= a codepoint with a joining Joining_Type
 ```
@@ -195,6 +197,16 @@ special kind of priority, the **last** of them wins.
 @Seen 6 *           # seen normally elongates,
 @Seen ! @Yeh .      # but not directly before a final yeh
 @Lam ! *            # lam never hosts a kashida
+```
+
+### Imports and overrides
+
+A `use` line includes a built-in pattern set in at that point, and the rules after it
+can override it:
+
+```
+use arabic-naskh
+* 2 @Heh .          # keep everything, but soften the final-heh rule
 ```
 
 ### Inline group-sets

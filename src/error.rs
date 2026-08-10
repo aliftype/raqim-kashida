@@ -52,6 +52,8 @@ pub enum CompileErrorKind {
     /// A weight in the gap between a token and a `.`, where no connection
     /// exists.
     WeightOutsideRun,
+    /// A `use` naming a set that is not built in.
+    UnknownImport(String),
 }
 
 impl fmt::Display for CompileErrorKind {
@@ -89,6 +91,9 @@ impl fmt::Display for CompileErrorKind {
             }
             CompileErrorKind::WeightOutsideRun => {
                 write!(f, "Weight outside the run at a “.” boundary")
+            }
+            CompileErrorKind::UnknownImport(name) => {
+                write!(f, "Unknown pattern set “{name}”")
             }
         }
     }
