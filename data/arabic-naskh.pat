@@ -74,11 +74,15 @@
 # p. 5: no elongation occurs before the letters sad, ain, waw, heh, or a final feh.
 # p. 10: no space may be stretched before a sad.
 # p. 12: do not stretch a space before the letters feh, qaf, or waw.
-! {@Sad @Ain @Waw}
-! @Heh *
+# Hah below is my own, no source explicitly mentions it, but hah connects from top
+# so can’t have a kashida.
+! {@Hah @Sad @Ain @Waw}
+#! @Heh * # Other sources allow kashida here, and it feel dubious.
 ! {@Feh @Qaf @Yeh @Yeh_Barree} .
 
 # p. 5: no elongation occurs after the letter lam.
 # p. 12: no elongation may be made after the kaf
 # p. 14: no elongation may be made after lam.
+# Muhammad Mu’nis in his al-Mizan al-ma’luf explicitly says lam is treated
+# exactly like beh and gives examples of stretching initial and medial lam.
 {@Kaf @Lam} !

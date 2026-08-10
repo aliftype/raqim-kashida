@@ -402,8 +402,6 @@ fn naskh_pattern_tests() {
     assert_eq!(builtin_points("arabic-naskh", "مسعد"), vec![(2, 3)]);
     // None after a kaf or lam.
     assert_eq!(builtin_points("arabic-naskh", "كلمة"), vec![(2, 9)]);
-    // None before a medial heh.
-    assert_eq!(builtin_points("arabic-naskh", "سهلة"), Vec::new());
     // None before a final yeh.
     assert_eq!(builtin_points("arabic-naskh", "سعي"), Vec::new());
     // The heh ending is the one naskh rule with no length gate.
@@ -485,7 +483,7 @@ fn manual_tatweel() {
     // naskh has no rule targeting it, so a kept kashida just stays in the
     // text.
     let set = builtin_pattern_set("arabic-naskh").unwrap();
-    let (_, merged) = find_kashida_points("سـبح", set, false);
+    let (_, merged) = find_kashida_points("سـبل", set, false);
     let merged: Vec<_> = merged.iter().map(|k| (k.index, k.priority)).collect();
     assert_eq!(merged, vec![(2, 3)]);
 }
