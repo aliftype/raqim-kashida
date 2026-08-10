@@ -3,6 +3,7 @@
 //! Given text plus a compiled pattern set, produce the junctions where a
 //! kashida may be inserted, each with a priority (0–9, higher = stronger).
 
+#![forbid(unsafe_code)]
 #![warn(missing_docs)]
 #![warn(unreachable_pub)]
 
