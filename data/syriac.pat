@@ -5,11 +5,15 @@
 # from:
 # https://bugs.documentfoundation.org/show_bug.cgi?id=140767
 #
-# Rules numbered as [Spec] orders them, by precedence (rule 1 strongest).
+# Rules numbered as [Spec] orders them, by precedence (rule 1 strongest), but
+# written weakest first, since a later rule overrides an earlier one.
 # It gives no per-letter priorities, so rules 1 and 2 are ladders. Each
 # rung's length guard is what stops it at the midpoint. The order is exact for
 # runs of 2 to 10 letters, beyond that the deepest points share the lowest
 # priority. [Spec] measures over the word, we measure over each joined run.
+
+# Whatever the ladders do not reach is still a candidate, just the weakest.
+* 0 *
 
 # Rule 1: between the before last and last character of a word by default,
 # then between the before last letter and the letter before it, and so on up
@@ -26,8 +30,6 @@
 [5+] . * * 2 *
 [7+] . * * * 1 *
 
-# Whatever the ladders do not reach is still a candidate, just the weakest.
-* 0 *
 
 # Rule 3: inter-word justification. Not relevant here.
 

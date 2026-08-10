@@ -146,8 +146,8 @@ and a range must not be empty. With no guard a pattern applies at any length.
 #### Priority
 
 A digit `0`–`9` between two tokens is the **priority** of a kashida at that
-connection, higher meaning more preferable. At each connection the **highest**
-priority across all matching patterns wins and is the one reported.
+connection, higher meaning more preferable. Rules apply in order, so the
+**last** rule for any given connection wins.
 
 An **absent** digit is not a candidate at all. An explicit `0` is the weakest
 candidate (lowest priority). One gap holds at most one weight;
@@ -188,9 +188,8 @@ the priority is same at every length.
 
 #### Suppression: `!`
 
-A `!` where a digit would go **blocks** that point unconditionally. So no
-candidate, regardless of any priority another pattern assigns there.
-Suppression is top precedence.
+A `!` where a digit would go **blocks** that point: no candidate there. It is a
+special kind of priority, the **last** of them wins.
 
 ```
 @Seen 6 *           # seen normally elongates,

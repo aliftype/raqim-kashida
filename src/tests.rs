@@ -155,8 +155,10 @@ fn letters_match_only_themselves() {
 }
 
 #[test]
-fn max_priority_wins_at_a_connection() {
+fn the_last_rule_wins_at_a_connection() {
     assert_eq!(points("بت", "ب2ت\nب5ت"), vec![(0, 5)]);
+    // Not the highest: order alone decides.
+    assert_eq!(points("بت", "ب5ت\nب2ت"), vec![(0, 2)]);
 }
 
 #[test]
@@ -166,8 +168,9 @@ fn absent_digit_is_no_candidate_explicit_zero_is_weakest() {
 }
 
 #[test]
-fn suppression_beats_any_priority() {
+fn a_suppression_holds_until_a_later_rule_speaks() {
     assert_eq!(points("بت", "ب9ت\nب!ت"), Vec::new());
+    assert_eq!(points("بت", "ب!ت\nب9ت"), vec![(0, 9)]);
 }
 
 #[test]
@@ -569,4 +572,17 @@ fn every_connection_in_a_run_already_joins() {
             }
         }
     }
+}
+
+#[test]
+fn a_later_rule_overrides_an_earlier_one() {
+    // Lowered to 1, which no single rule could do before; the teh-meem
+    // connection is untouched.
+    assert_eq!(points("بتم", "ب3ت\nت5م\nب1ت"), vec![(0, 1), (1, 5)]);
+}
+
+#[test]
+fn a_later_rule_can_undo_a_suppression_and_impose_one() {
+    assert_eq!(points("بت", "ب!ت\nب5ت"), vec![(0, 5)]);
+    assert_eq!(points("بت", "ب5ت\nب!ت"), Vec::new());
 }

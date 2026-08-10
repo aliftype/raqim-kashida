@@ -59,8 +59,8 @@ pub(crate) fn resolve_run(
         return Vec::new();
     }
 
-    let mut priority: Vec<Option<u8>> = vec![None; len - 1];
-    let mut suppressed: Vec<bool> = vec![false; len - 1];
+    // The last priority for an given connection wins.
+    let mut priorities: Vec<Option<u8>> = vec![None; len - 1];
 
     for pattern in &set.patterns {
         if !guard_matches(pattern.guard, len) {
@@ -76,8 +76,7 @@ pub(crate) fn resolve_run(
                 continue;
             }
             // A join-causing last member (a tatweel, or a ZWJ tail) still
-            // joins forward, so nothing in that run is final, just as a
-            // letter followed by one is not.
+            // joins forward, so nothing in that run is final.
             if pattern.trailing_boundary
                 && (start + m != len
                     || graphemes[run[len - 1]].joining_type == JoiningType::JoinCausing)
@@ -100,29 +99,22 @@ pub(crate) fn resolve_run(
                     continue;
                 }
                 let point = point as usize;
-                match weight {
-                    Weight::Suppress => suppressed[point] = true,
+                priorities[point] = match weight {
+                    Weight::Suppress => None,
                     Weight::Priority { base, min } => {
-                        let value = effective_priority(*base, *min, len, floor);
-                        let cur = priority[point];
-                        if cur.is_none_or(|c| value > c) {
-                            priority[point] = Some(value);
-                        }
+                        Some(effective_priority(*base, *min, len, floor))
                     }
-                }
+                };
             }
         }
     }
 
     let mut out = Vec::new();
     for point in 0..len - 1 {
-        if let Some(value) = priority[point] {
-            if suppressed[point] {
-                continue;
-            }
+        if let Some(priority) = priorities[point] {
             out.push(KashidaPoint {
                 index: run[point] as u32,
-                priority: value,
+                priority,
             });
         }
     }

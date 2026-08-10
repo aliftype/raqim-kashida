@@ -16,10 +16,6 @@
 # ([4]…[7+]), runs of 3 use the gates below, and runs of 2 get nothing from
 # the matrix.
 
-# [B06] §3.2: a word ending in a heh pronoun is best stretched just before
-# the heh. @Heh folds to the whole family (teh-marbuta is the heh bowl plus
-# dots) in final/isolated.
-* 9 @Heh .
 
 # [B06] §3.2: no kashida before a final yeh (handled by the Afifi rules at
 # the end)
@@ -68,6 +64,11 @@
 # heh
 [4+] @Heh 6\3 @Beh
 [4+] @Heh 3\0 {@Seen @Reh @Dal @Heh}
+
+# [B06] §3.2: a word ending in a heh pronoun is best stretched just before
+# the heh. @Heh folds to the whole family (teh-marbuta is the heh bowl plus
+# dots) in final/isolated.
+* 9 @Heh .
 
 # [Afifi]
 
