@@ -49,7 +49,7 @@ pub enum CompileErrorKind {
     StrayCharacter(char),
     /// Two weights (digits or `!`) in the same inter-token gap.
     ConflictingWeights,
-    /// A weight in the gap between a token and a `.`, where no junction
+    /// A weight in the gap between a token and a `.`, where no connection
     /// exists.
     WeightOutsideRun,
 }
@@ -85,7 +85,7 @@ impl fmt::Display for CompileErrorKind {
             CompileErrorKind::NoLetters => write!(f, "Pattern has no letters"),
             CompileErrorKind::StrayCharacter(ch) => write!(f, "Stray character {ch:?}"),
             CompileErrorKind::ConflictingWeights => {
-                write!(f, "Conflicting weights at one junction")
+                write!(f, "Conflicting weights at one connection")
             }
             CompileErrorKind::WeightOutsideRun => {
                 write!(f, "Weight outside the run at a “.” boundary")

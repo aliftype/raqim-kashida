@@ -95,18 +95,18 @@ pub(crate) fn resolve_run(
                     Some(w) => w,
                     None => continue,
                 };
-                let junction = start as isize + gap as isize - 1;
-                if junction < 0 || junction > len as isize - 2 {
+                let point = start as isize + gap as isize - 1;
+                if point < 0 || point > len as isize - 2 {
                     continue;
                 }
-                let junction = junction as usize;
+                let point = point as usize;
                 match weight {
-                    Weight::Suppress => suppressed[junction] = true,
+                    Weight::Suppress => suppressed[point] = true,
                     Weight::Priority { base, min } => {
                         let value = effective_priority(*base, *min, len, floor);
-                        let cur = priority[junction];
+                        let cur = priority[point];
                         if cur.is_none_or(|c| value > c) {
-                            priority[junction] = Some(value);
+                            priority[point] = Some(value);
                         }
                     }
                 }
@@ -115,13 +115,13 @@ pub(crate) fn resolve_run(
     }
 
     let mut out = Vec::new();
-    for junction in 0..len - 1 {
-        if let Some(value) = priority[junction] {
-            if suppressed[junction] {
+    for point in 0..len - 1 {
+        if let Some(value) = priority[point] {
+            if suppressed[point] {
                 continue;
             }
             out.push(KashidaPoint {
-                index: run[junction] as u32,
+                index: run[point] as u32,
                 priority: value,
             });
         }

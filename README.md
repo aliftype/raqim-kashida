@@ -88,10 +88,10 @@ Whitespace is never significant, except that it separates members inside
 
 ### Pattern lines
 
-A weight sits at the **junction** before the token that follows it. A weight
-after the last token applies to the junction after it. A pattern matches a run
+A weight sits at the **connection** before the token that follows it. A weight
+after the last token applies to the connection after it. A pattern matches a run
 of letters starting at some position when every token matches the corresponding
-grapheme, and each weight then contributes to its junction.
+grapheme, and each weight then contributes to its connection.
 
 #### Tokens
 
@@ -140,24 +140,24 @@ A `[…]` prefix restricts a pattern to joined runs of a given **letter count**
 The length is the joined run length, not the word length. In “المبتعث” the “ا”
 is its own joined run and “لمبتعث” is another joined run.
 
-The bounds must be whole numbers, at least 2 (no shorter run has a junction),
+The bounds must be whole numbers, at least 2 (no shorter run has a connection),
 and a range must not be empty. With no guard a pattern applies at any length.
 
 #### Priority
 
 A digit `0`–`9` between two tokens is the **priority** of a kashida at that
-junction, higher meaning more preferable. At each junction the **highest**
+connection, higher meaning more preferable. At each connection the **highest**
 priority across all matching patterns wins and is the one reported.
 
 An **absent** digit is not a candidate at all. An explicit `0` is the weakest
 candidate (lowest priority). One gap holds at most one weight;
 two digits, or a digit over a `!`, in the same gap is a compile error, as is a
-weight in the gap between a token and a `.` (no junction exists at a run’s
+weight in the gap between a token and a `.` (no connection exists at a run’s
 edge).
 
 ```
 @Seen 6 *       # after an initial/medial seen, priority 6
-ب 0 ت           # a beh→teh junction, weakest possible candidate
+ب 0 ت           # a beh→teh connection, weakest possible candidate
 ```
 
 ##### Length-dependent priority
@@ -179,16 +179,16 @@ beyond the floor lowers the priority by one until it reaches the second digit:
 | لمبتعث     | 6      | 7        |
 | لمبتعثة    | 7      | 6        |
 
-So the same rule marks the junction as excellent in a short run and merely good
+So the same rule marks the connection as excellent in a short run and merely good
 in a long one.
 
-Without a guard the floor is 2, the shortest run with a junction. The second
+Without a guard the floor is 2, the shortest run with a connection. The second
 digit must not exceed the first, and a plain digit is the constant case where
 the priority is same at every length.
 
 #### Suppression: `!`
 
-A `!` where a digit would go **blocks** that junction unconditionally. So no
+A `!` where a digit would go **blocks** that point unconditionally. So no
 candidate, regardless of any priority another pattern assigns there.
 Suppression is top precedence.
 
@@ -211,12 +211,12 @@ groups (and `^@Name` or `^=Name` is the single-group complement).
 @Seen 8 ^{@Yeh @Farsi_Yeh} .    # any final but a yeh
 ```
 
-### Junction placement
+### Point placement
 
-A kashida at the junction between graphemes `i` and `i+1` is inserted before
-grapheme `i+1`’s cluster. A junction is a candidate only where there is a real
-join: never after a right-joining letter such as `د ر و`, and never across a
-join a ZWNJ suppresses. Suppressing kashida inside lam-alef ligature, for
+A kashida at the connection between graphemes `i` and `i+1` is inserted before
+grapheme `i+1`’s cluster. A point is a candidate only where there is a real
+connection: never after a right-joining letter such as `د ر و`, and never
+across one a ZWNJ suppresses. Suppressing kashida inside lam-alef ligature, for
 instance, is up to the pattern itself.
 
 ## License

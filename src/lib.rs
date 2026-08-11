@@ -1,6 +1,6 @@
 //! Arabic kashida (tatweel) insertion-point finding.
 //!
-//! Given text plus a compiled pattern set, produce the junctions where a
+//! Given text plus a compiled pattern set, produce the points where a
 //! kashida may be inserted, each with a priority (0–9, higher = stronger).
 
 #![forbid(unsafe_code)]

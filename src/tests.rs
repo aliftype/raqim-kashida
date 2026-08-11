@@ -155,7 +155,7 @@ fn letters_match_only_themselves() {
 }
 
 #[test]
-fn max_priority_wins_at_a_junction() {
+fn max_priority_wins_at_a_connection() {
     assert_eq!(points("بت", "ب2ت\nب5ت"), vec![(0, 5)]);
 }
 
@@ -315,7 +315,7 @@ fn builtin_sets_resolve_and_are_named() {
 }
 
 #[test]
-fn syriac_ranks_junctions_outside_in() {
+fn syriac_ranks_points_outside_in() {
     // LibreOffice picks Syriac positions outside-in: from the letter before
     // the last toward the word's midpoint, then from the start toward it.
     // These are the orders GetWordKashidaPositionSyriac yields, most
@@ -376,7 +376,7 @@ fn syriac_never_breaks_lomadh_olaph() {
 fn syriac_letters_that_take_no_kashida_after_them() {
     // "The following letters should not receive a kashida after them:
     // Olaph; Dolath; He; Waw; Zayn; Sodhe; Rish; Taw; Dotless Dolath Rish."
-    // None of them joins forward, so no junction ever follows one.
+    // None of them joins forward, so no connection ever follows one.
     for word in ["ܐܒ", "ܕܒ", "ܗܒ", "ܘܒ", "ܙܒ", "ܨܒ", "ܪܒ", "ܬܒ", "ܖܒ"] {
         assert_eq!(builtin_points("syriac", word), Vec::new(), "{word}");
     }
@@ -410,8 +410,8 @@ fn naskh_pattern_tests() {
 
 #[test]
 fn simple_pattern_tests() {
-    // Rule 2 (after initial seen) at junction 0, rule 7 before the
-    // final teh at junction 1.
+    // Rule 2 (after initial seen) at point 0, rule 7 before the
+    // final teh at point 1.
     assert_eq!(builtin_points("arabic-simple", "سبت"), vec![(0, 8), (1, 3)]);
     // Rule 2 carries no final-yeh exception: seen before a final yeh takes 8.
     assert_eq!(builtin_points("arabic-simple", "سي"), vec![(0, 8)]);
@@ -424,7 +424,7 @@ fn simple_pattern_tests() {
 
 #[test]
 fn zwnj_breaks_the_join() {
-    // The ZWNJ clusters into the beh grapheme; the junction it suppresses
+    // The ZWNJ clusters into the beh grapheme; the connection it suppresses
     // must not host a kashida, and both letters shape isolated.
     assert_eq!(points("ب\u{200C}ت", "ب2ت"), Vec::new());
     assert_eq!(builtin_points("arabic-simple", "ب\u{200C}ت"), Vec::new());
@@ -499,7 +499,7 @@ fn existing_kashida_matches_like_any_letter() {
 }
 
 #[test]
-fn conflicting_weights_at_one_junction_are_rejected() {
+fn conflicting_weights_at_one_connection_are_rejected() {
     assert!(err_msg("ب2 3ت").contains("Conflicting weights"));
     // '!' silently overwritten by a digit was the worst case.
     assert!(err_msg("ب!2ت").contains("Conflicting weights"));
@@ -507,7 +507,7 @@ fn conflicting_weights_at_one_junction_are_rejected() {
 
 #[test]
 fn degenerate_length_guards_are_rejected() {
-    // No run of fewer than 2 letters has a junction; empty ranges match
+    // No run of fewer than 2 letters has a connection; empty ranges match
     // nothing. All of these compiled silently dead before.
     assert!(err_msg("[0]ب2ت").contains("Invalid length guard"));
     assert!(err_msg("[1]ب2ت").contains("Invalid length guard"));
@@ -543,7 +543,7 @@ fn find_kashida_points_strips_or_keeps_user_tatweel() {
 #[test]
 fn readme_length_ladder_words() {
     // The README's length-dependent priority walkthrough. In the مبتعث words
-    // the junction is teh–ain: teh is in the beh Joining_Group.
+    // the connection is teh–ain: teh is in the beh Joining_Group.
     let p = |w: &str| points(w, "[4+] @Beh 9\\6 @Ain");
     assert_eq!(p("بعثة"), vec![(0, 9)]); // four-letter run, the floor
     assert_eq!(p("مبتعث"), vec![(2, 8)]); // five
@@ -552,14 +552,14 @@ fn readme_length_ladder_words() {
 }
 
 #[test]
-fn every_junction_in_a_run_already_joins() {
+fn every_connection_in_a_run_already_joins() {
     // A run ends at the first letter that cannot join on.
     let words =
         "بيت لا دب بد مررت الله سـبح ب\u{200C}ت ب\u{200D}ت نَّص \u{064E}بت بـ وا أبد كتاب لآ دا";
     for word in words.split(' ') {
         let graphemes = split_graphemes(word);
         for run in joined_runs(&graphemes) {
-            // Every member but the last one hosts a junction.
+            // Every member but the last one hosts a connection.
             let (_, hosts) = run.split_last().expect("a run is never empty");
             for &index in hosts {
                 assert!(

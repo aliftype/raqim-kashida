@@ -8,7 +8,7 @@
 # Rules numbered as [Spec] orders them, by precedence (rule 1 strongest).
 # It gives no per-letter priorities, so rules 1 and 2 are ladders. Each
 # rung's length guard is what stops it at the midpoint. The order is exact for
-# runs of 2 to 10 letters, beyond that the deepest junctions share the lowest
+# runs of 2 to 10 letters, beyond that the deepest points share the lowest
 # priority. [Spec] measures over the word, we measure over each joined run.
 
 # Rule 1: between the before last and last character of a word by default,
@@ -45,5 +45,5 @@
 
 # Rule 8 (no kashida after olaph, dolath, he, waw, zayn, sodhe, rish, taw or
 # dotless dolath rish) and rule 9 (only letters take one between them).
-# Those are all right-joining letters, so no junction follows one anyway,
+# Those are all right-joining letters, so no connection follows one anyway,
 # and marks belong to the letter they sit on.

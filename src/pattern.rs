@@ -175,7 +175,7 @@ impl Parser<'_> {
         }
         weights.resize(tokens.len() + 1, None);
         // A weight in the gap between a token and a `.` can never land on a
-        // junction: no junction exists at a run's edge.
+        // connection: no connection exists at a run's edge.
         if (leading_boundary && weights[0].is_some())
             || (trailing_boundary && weights[tokens.len()].is_some())
         {
@@ -220,7 +220,7 @@ impl Parser<'_> {
         } else {
             LengthGuard::Exact(bound(trimmed)?)
         };
-        // Reject guards no run can satisfy: a junction needs two letters, and
+        // Reject guards no run can satisfy: a connection needs two letters, and
         // a range must not be empty.
         let bounds_ok = match guard {
             LengthGuard::Exact(n) | LengthGuard::Min(n) => n >= 2,
