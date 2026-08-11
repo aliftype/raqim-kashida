@@ -356,7 +356,7 @@ fn syriac_matches_the_libreoffice_test_vectors() {
     // testSyriac(): seven letters yield 5, 4, 3, 0, 1, 2.
     assert_eq!(ranked("ܥܥܥܥܥܥܥ"), vec![5, 4, 3, 0, 1, 2]);
     // testSyriacVowelMarks(): the same seven letters carrying vowel marks
-    // yield the same order (tdf#168698 — the midpoint counts letters only).
+    // yield the same order (“the midpoint counts letters only” rule).
     assert_eq!(
         ranked("ܥܥܥܥܥ\u{073F}\u{073E}ܥ\u{073F}\u{073E}ܥ\u{073F}\u{073E}"),
         vec![5, 4, 3, 0, 1, 2]
