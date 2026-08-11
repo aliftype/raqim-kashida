@@ -1,6 +1,6 @@
 [package]
 name = "raqim-kashida"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 rust-version = "1.82"
 description = "Kashida (tatweel) insertion-point finding driven by pattern sets."
