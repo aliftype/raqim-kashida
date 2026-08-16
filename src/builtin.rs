@@ -5,6 +5,7 @@ use std::sync::OnceLock;
 
 const ARABIC_SIMPLE_TEXT: &str = include_str!("../data/arabic-simple.pat");
 const ARABIC_NASKH_TEXT: &str = include_str!("../data/arabic-naskh.pat");
+const ARABIC_NASTALIQ_TEXT: &str = include_str!("../data/arabic-nastaliq.pat");
 const SYRIAC_TEXT: &str = include_str!("../data/syriac.pat");
 
 fn arabic_simple_set() -> &'static PatternSet {
@@ -18,6 +19,13 @@ fn arabic_naskh_set() -> &'static PatternSet {
     static SET: OnceLock<PatternSet> = OnceLock::new();
     SET.get_or_init(|| {
         compile_pattern_text(ARABIC_NASKH_TEXT).expect("built-in \"arabic-naskh\" compiles")
+    })
+}
+
+fn arabic_nastaliq_set() -> &'static PatternSet {
+    static SET: OnceLock<PatternSet> = OnceLock::new();
+    SET.get_or_init(|| {
+        compile_pattern_text(ARABIC_NASTALIQ_TEXT).expect("built-in \"arabic-nastaliq\" compiles")
     })
 }
 
@@ -43,6 +51,11 @@ fn syriac_set() -> &'static PatternSet {
 ///   on the subject, but overridden where they disagree with Fawzi Salim
 ///   Afifi’s _Taallum al-khatt al-arabi_, part 3 (تعلم الخط العربي، الجزء
 ///   الثالث).
+/// - `"arabic-nastaliq"`: Classical Arabic _kashida_ insertion rules suitable
+///   for classical _Nastaliq_ typefaces. Uses the `arabic-naskh` rules with
+///   some tailoring for _Nastaliq_. Currently based on Afifi’s _Silsilat
+///   taalim al-khatt al-arabi_, part 9: _al-khatt al-farisi_ (سلسلة تعليم الخط
+///   العربي، الجزء التاسع: الخط الفارسي).
 /// - `"syriac"`: Syriac, following the [guidelines proposed for justified
 ///   Syriac].
 ///
@@ -52,7 +65,7 @@ fn syriac_set() -> &'static PatternSet {
 /// [Benatia et al.]: https://www.tug.org/tugboat/tb27-2/tb87benatia.pdf
 /// [guidelines proposed for justified Syriac]: https://bugs.documentfoundation.org/show_bug.cgi?id=140767
 pub fn builtin_pattern_set_names() -> &'static [&'static str] {
-    &["arabic-simple", "arabic-naskh", "syriac"]
+    &["arabic-simple", "arabic-naskh", "arabic-nastaliq", "syriac"]
 }
 
 /// Whether `name` refers to a built-in pattern set, without compiling it,
@@ -67,6 +80,7 @@ pub fn builtin_pattern_set(name: &str) -> Option<&'static PatternSet> {
     match name {
         "arabic-simple" => Some(arabic_simple_set()),
         "arabic-naskh" => Some(arabic_naskh_set()),
+        "arabic-nastaliq" => Some(arabic_nastaliq_set()),
         "syriac" => Some(syriac_set()),
         _ => None,
     }

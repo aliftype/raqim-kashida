@@ -306,7 +306,7 @@ fn rejects_malformed_pattern_lines() {
 fn builtin_sets_resolve_and_are_named() {
     assert_eq!(
         builtin_pattern_set_names(),
-        ["arabic-simple", "arabic-naskh", "syriac"]
+        ["arabic-simple", "arabic-naskh", "arabic-nastaliq", "syriac"]
     );
     // Every listed name resolves, and nothing else does.
     for name in builtin_pattern_set_names() {
@@ -315,6 +315,63 @@ fn builtin_sets_resolve_and_are_named() {
     }
     assert!(!is_builtin_pattern_set("nope"));
     assert!(builtin_pattern_set("nope").is_none());
+}
+
+#[test]
+fn nastaliq_forbids_a_kashida_after_an_initial_beh() {
+    // Naskh allows it, Nastaliq does not.
+    assert_eq!(
+        builtin_points("arabic-naskh", "يهتم"),
+        vec![(0, 6), (1, 6), (2, 6)]
+    );
+    assert_eq!(
+        builtin_points("arabic-nastaliq", "يهتم"),
+        vec![(1, 6), (2, 6)]
+    );
+    // The tooth folds, so an initial noon counts too.
+    assert_eq!(
+        builtin_points("arabic-nastaliq", "تبتم"),
+        vec![(1, 6), (2, 6)]
+    );
+    // Only an initial one: a medial beh is untouched.
+    assert_eq!(
+        builtin_points("arabic-nastaliq", "فبتم"),
+        builtin_points("arabic-naskh", "فبتم")
+    );
+}
+
+#[test]
+fn nastaliq_forbids_a_kashida_before_a_thin_join() {
+    // Medial feh and qaf, which naskh allows.
+    assert_eq!(builtin_points("arabic-naskh", "سقتم"), vec![(0, 3), (2, 6)]);
+    assert_eq!(builtin_points("arabic-nastaliq", "سقتم"), vec![(2, 6)]);
+    // Tah.
+    assert_eq!(
+        builtin_points("arabic-naskh", "متظلم"),
+        vec![(0, 2), (1, 8), (2, 5)]
+    );
+    assert_eq!(
+        builtin_points("arabic-nastaliq", "متظلم"),
+        vec![(0, 2), (2, 5)]
+    );
+    // A medial heh, but a final one still takes the strongest point.
+    assert_eq!(builtin_points("arabic-naskh", "متهم"), vec![(0, 3), (1, 6)]);
+    assert_eq!(builtin_points("arabic-nastaliq", "متهم"), vec![(0, 3)]);
+    assert_eq!(builtin_points("arabic-nastaliq", "بحه"), vec![(1, 9)]);
+}
+
+#[test]
+fn nastaliq_forbids_a_kashida_after_a_lam_or_kaf() {
+    for word in ["كلمة", "معلم", "يكتم"] {
+        let points = builtin_points("arabic-nastaliq", word);
+        let graphemes: Vec<char> = word.chars().collect();
+        for &(index, _) in &points {
+            assert!(
+                !matches!(graphemes[index as usize], 'ل' | 'ك'),
+                "{word}: {points:?}"
+            );
+        }
+    }
 }
 
 #[test]
