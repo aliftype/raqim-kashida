@@ -15,6 +15,7 @@ pub(crate) struct Grapheme {
     pub(crate) base_codepoint: u32,
     pub(crate) joining_group: JoiningGroup,
     pub(crate) joining_type: JoiningType,
+    pub(crate) is_mark_seat: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -25,22 +26,14 @@ pub(crate) enum JoiningForm {
     Final,
 }
 
-// A bare tatweel is a one not carrying a small alef or hamza above/below.
-// These can potentially be stripped.
+// A bare tatweel that carries no mark is an elongation and can be stripped.
+// One that carries a mark serves as a seat for it and must be kept.
 pub(crate) fn is_bare_tatweel_at(chars: &[char], k: usize) -> bool {
     if chars[k] != KASHIDA {
         return false;
     }
     let joining_types = CodePointMapData::<JoiningType>::new();
-    for &c in &chars[k + 1..] {
-        if joining_types.get(c) != JoiningType::Transparent {
-            break;
-        }
-        if matches!(c, '\u{0670}' | '\u{0654}' | '\u{0655}') {
-            return false;
-        }
-    }
-    true
+    !matches!(chars.get(k + 1), Some(&c) if joining_types.get(c) == JoiningType::Transparent)
 }
 
 pub(crate) fn split_graphemes(word: &str) -> Vec<Grapheme> {
@@ -75,6 +68,10 @@ pub(crate) fn split_graphemes(word: &str) -> Vec<Grapheme> {
             base_codepoint: base as u32,
             joining_group: joining_groups.get(base),
             joining_type,
+            is_mark_seat: base == KASHIDA
+                && cluster
+                    .chars()
+                    .any(|c| joining_types.get(c) == JoiningType::Transparent),
         });
     }
     out
@@ -131,7 +128,9 @@ pub(crate) fn joined_runs(graphemes: &[Grapheme]) -> Vec<Vec<usize>> {
     let mut out: Vec<Vec<usize>> = Vec::new();
     let mut current: Vec<usize> = Vec::new();
     for (i, g) in graphemes.iter().enumerate() {
-        if g.joining_type == JoiningType::Transparent {
+        // A tatweel that serves as a seat still joins on both sides but is not
+        // a letter of the run, so it is transparent for our purpose.
+        if g.joining_type == JoiningType::Transparent || g.is_mark_seat {
             continue;
         }
         if !is_joining_type(g.joining_type) {

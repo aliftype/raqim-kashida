@@ -578,10 +578,9 @@ fn manual_tatweel() {
     // Hamza below is a seat as well.
     let below = "ب\u{0640}\u{0655}ت";
     assert_eq!(find_kashida_points(below, set, true).0, below);
-    // A tatweel carrying only harakat is elongation: strip it and the vowel
-    // reattaches to its letter.
+    // A harakah makes a seat as well, so the tatweel under it is kept.
     let harakah = "ب\u{0640}\u{064E}ت";
-    assert_eq!(find_kashida_points(harakah, set, true).0, "ب\u{064E}ت");
+    assert_eq!(find_kashida_points(harakah, set, true).0, harakah);
     // A kept bare kashida is a run letter: it counts toward length guards
     // and matches `*` like anything else.
     assert_eq!(points("بـتر", "[4]ت2ر"), vec![(2, 2)]);
@@ -637,6 +636,45 @@ fn boundary_edge_weights_are_rejected() {
 fn group_name_stops_at_non_name_characters() {
     // '@Behت' is '@Beh' followed by a teh literal, not a group-name typo.
     assert_eq!(points("بتت", "@Behت 2 ت"), vec![(1, 2)]);
+}
+
+#[test]
+fn a_seat_kashida_is_transparent() {
+    let set = builtin_pattern_set("arabic-naskh").unwrap();
+    for (word, seated, bare) in [
+        ("ٱلرَّحۡمَـٰنِ", vec![(3, 2), (4, 2)], vec![(3, 2), (4, 2)]),
+        (
+            "ٱلۡعَـٰلَمِینَ",
+            vec![(2, 1), (5, 1), (6, 4)],
+            vec![(2, 1), (4, 1), (5, 4)],
+        ),
+        ("وَبِٱلۡـَٔاخِرَةِ", vec![(1, 4), (6, 1)], vec![(1, 4), (5, 1)]),
+        (
+            "ٱلنَّبِیِّـۧنَ",
+            vec![(2, 5), (3, 5), (4, 5)],
+            vec![(2, 5), (3, 5), (4, 5)],
+        ),
+        (
+            "تَأۡمَـ۫نَّا",
+            vec![(0, 4), (2, 2), (4, 5)],
+            vec![(0, 4), (2, 2), (3, 5)],
+        ),
+        ("لِیَسُـࣳۤـُٔوا۟", Vec::new(), Vec::new()),
+        ("ٱلصَّـٰلِحَـٰتِ", vec![(2, 5)], vec![(2, 5)]),
+    ] {
+        assert_eq!(find_kashida_points(word, set, true).0, word, "{word}");
+        assert_eq!(builtin_points("arabic-naskh", word), seated, "{word}");
+        let stripped: String = word.chars().filter(|c| *c != 'ـ').collect();
+        assert_eq!(builtin_points("arabic-naskh", &stripped), bare, "{word}");
+    }
+
+    let seated = "ٱلۡعَـٰلَمِینَ";
+    assert_eq!(points(seated, "[6]م2ی"), vec![(5, 2)]);
+    assert_eq!(points(seated, "[7]م2ی"), Vec::new());
+    assert_eq!(points(seated, "ـ 9"), Vec::new());
+    let typed = "ٱلۡعَـٰلَـمِینَ";
+    assert_eq!(points(typed, "[7]م2ی"), vec![(6, 2)]);
+    assert_eq!(points(typed, "ـ 9"), vec![(5, 9)]);
 }
 
 #[test]

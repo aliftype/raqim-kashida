@@ -62,10 +62,8 @@ fn strip_bare_tatweel(word: &str) -> String {
 /// Kashida insertion points for `word` under the given pattern set.
 ///
 /// Any **bare** kashida already in the text is stripped first, unless
-/// `remove_existing_kashida` is `false`. A kashida that serves as a seat for a
-/// small alef (U+0670) or a combining hamza (U+0654 and U+0655) is not bare
-/// and is always kept, as the combination serves as a unit in Quranic
-/// orthography.
+/// `remove_existing_kashida` is `false`. A kashida carrying a mark serves as
+/// a seat for it, so it is always kept.
 ///
 /// Returns the (possibly stripped) text along with the points, whose
 /// indices refer to it.
