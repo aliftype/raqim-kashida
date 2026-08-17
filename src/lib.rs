@@ -1,7 +1,8 @@
-//! Arabic kashida (tatweel) insertion-point finding.
+//! A library for finding _kashida_ (_tatweel_) insertion points and
+//! priorities, driven by a small pattern language.
 //!
-//! Given text plus a compiled pattern set, produce the points where a
-//! kashida may be inserted, each with a priority (0–9, higher = stronger).
+//! Given a word and a compiled pattern set, the crate returns the possible
+//! _kashida_ insertion points and their priorities.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]

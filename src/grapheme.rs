@@ -1,4 +1,4 @@
-//! Grapheme clustering and Arabic joining analysis.
+//! Grapheme clustering and Arabic-like joining analysis.
 //!
 //! Segments a word into UAX #29 grapheme clusters, tags each with its base
 //! codepoint's Joining_Type / Joining_Group, and derives the joining
