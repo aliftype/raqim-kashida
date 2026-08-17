@@ -29,6 +29,9 @@ pub(crate) enum LengthGuard {
     Exact(usize),
     Min(usize),
     Range { lo: usize, hi: usize },
+    // Matches a run of any length. The number is the run length where the
+    // priority is highest.
+    Open(usize),
 }
 
 #[derive(Clone, Debug)]
@@ -192,7 +195,7 @@ impl Parser<'_> {
         })
     }
 
-    // guard ::= "[" (bound | bound ":" | bound ":" bound) "]"
+    // guard ::= "[" (bound | bound ":" | bound ":" bound | ":" bound ":") "]"
     fn guard(&mut self) -> Result<LengthGuard, CompileErrorKind> {
         self.pos += 1; // the `[`
         let start = self.pos;
@@ -212,7 +215,12 @@ impl Parser<'_> {
             }
             s.parse::<usize>().map_err(|_| invalid())
         };
-        let guard = if let Some(stripped) = trimmed.strip_suffix(':') {
+        let guard = if let Some(stripped) = trimmed
+            .strip_prefix(':')
+            .and_then(|rest| rest.strip_suffix(':'))
+        {
+            LengthGuard::Open(bound(stripped)?)
+        } else if let Some(stripped) = trimmed.strip_suffix(':') {
             LengthGuard::Min(bound(stripped)?)
         } else if let Some(colon) = trimmed.find(':') {
             LengthGuard::Range {
@@ -225,7 +233,7 @@ impl Parser<'_> {
         // Reject guards no run can satisfy: a connection needs two letters, and
         // a range must not be empty.
         let bounds_ok = match guard {
-            LengthGuard::Exact(n) | LengthGuard::Min(n) => n >= 2,
+            LengthGuard::Exact(n) | LengthGuard::Min(n) | LengthGuard::Open(n) => n >= 2,
             LengthGuard::Range { lo, hi } => lo >= 2 && lo <= hi,
         };
         if bounds_ok {

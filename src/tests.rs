@@ -194,6 +194,37 @@ fn priority_steps_down_as_run_grows() {
 }
 
 #[test]
+fn an_open_guard_matches_any_length_and_drops_off_either_way() {
+    let steps = |word: &str| points(word, "[:4:]ب6\\3ت");
+    assert_eq!(steps("بت"), vec![(0, 4)]); // len 2, two letters from 4
+    assert_eq!(steps("بتن"), vec![(0, 5)]); // len 3
+    assert_eq!(steps("بتنن"), vec![(0, 6)]); // len 4, where the priority is highest
+    assert_eq!(steps("بتننن"), vec![(0, 5)]); // len 5
+    assert_eq!(steps("بتنننن"), vec![(0, 4)]); // len 6
+    assert_eq!(steps("بتننننن"), vec![(0, 3)]); // len 7, reaches the second digit
+    assert_eq!(steps("بتنننننن"), vec![(0, 3)]); // len 8, holds
+}
+
+#[test]
+fn an_open_guard_clamps_a_short_run_at_the_second_digit() {
+    // Two letters from 6 would give 1, but the priority never drops below the
+    // second digit.
+    assert_eq!(points("بت", "[:6:]ب3\\2ت"), vec![(0, 2)]);
+    // A one-digit priority is the same at every length.
+    assert_eq!(points("بت", "[:4:]ب6ت"), vec![(0, 6)]);
+    assert_eq!(points("بتنن", "[:4:]ب6ت"), vec![(0, 6)]);
+}
+
+#[test]
+fn an_open_guard_bound_is_still_checked() {
+    let err_msg = |text: &str| compile_pattern_text(text).unwrap_err().to_string();
+    assert!(err_msg("[:1:]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[:x:]ب2ت").contains("Invalid length guard"));
+    // Without the closing `:` a leading one is still an invalid range.
+    assert!(err_msg("[:4]ب2ت").contains("Invalid length guard"));
+}
+
+#[test]
 fn lam_alef_is_suppressed_by_the_pattern_sets() {
     // The pattern allows kashida before any alef, lam-alef has no special
     // treatment.

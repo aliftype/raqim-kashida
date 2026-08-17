@@ -27,25 +27,26 @@ fn guard_matches(guard: Option<LengthGuard>, len: usize) -> bool {
         Some(LengthGuard::Exact(n)) => len == n,
         Some(LengthGuard::Min(n)) => len >= n,
         Some(LengthGuard::Range { lo, hi }) => len >= lo && len <= hi,
+        Some(LengthGuard::Open(_)) => true,
     }
 }
 
-// The shortest run length the guard allows, which is where a two-digit
-// priority is still at its base value. When there is no guard, this is the minimum
-// run length of 2.
+// The run length where a two-digit priority is at its first digit. With no
+// guard it is 2, the shortest run that has a connection.
 fn guard_floor(guard: Option<LengthGuard>) -> usize {
     match guard {
         None => 2,
         Some(LengthGuard::Range { lo, .. }) => lo,
-        Some(LengthGuard::Exact(n) | LengthGuard::Min(n)) => n,
+        Some(LengthGuard::Exact(n) | LengthGuard::Min(n) | LengthGuard::Open(n)) => n,
     }
 }
 
-// The priority in a run of `len` letters: it starts at `base` at the guard's
-// floor length, drops by one for each extra letter, and never goes below
-// `min`.
+// The priority in a run of `len` letters. It is `base` when `len` is `floor`,
+// drops by one for every letter of difference either way, and never goes below
+// `min`. Only `Open` matches a run shorter than its floor, so for every other
+// guard `len` is at least `floor` and the direction never comes up.
 fn effective_priority(base: u8, min: u8, len: usize, floor: usize) -> u8 {
-    let value = base as i32 - (len as i32 - floor as i32);
+    let value = base as i32 - (len as i32 - floor as i32).abs();
     value.max(min as i32) as u8
 }
 

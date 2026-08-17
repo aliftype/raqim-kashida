@@ -58,7 +58,7 @@ comment   ::= "#" anything
 use       ::= "use" set_name
 
 pattern   ::= guard? element+
-guard     ::= "[" (bound | bound ":" | bound ":" bound) "]"
+guard     ::= "[" (bound | bound ":" | bound ":" bound | ":" bound ":") "]"
 element   ::= token | weight | "."
 
 token     ::= reference | set | "^" (set | reference) | letter | "*"
@@ -138,8 +138,11 @@ A `[…]` prefix restricts a pattern to joined runs of a given **letter count**
 | `[4]`   | exactly 4   |
 | `[4:]`  | 4 or more   |
 | `[2:3]` | 2 through 3 |
+| `[:4:]` | any         |
 
-The bounds read like a Python slice: a colon opens that end.
+The bounds read like a Python slice: a colon opens that end. `[:4:]` is open at
+both ends, so it matches runs of any length. The 4 only matters when the
+priority has two digits; see below.
 
 The length is the joined run length, not the word length. In “المبتعث” the “ا”
 is its own joined run and “لمبتعث” is another joined run.
@@ -189,6 +192,18 @@ in a long one.
 Without a guard the floor is 2, the shortest run with a connection. The second
 digit must not exceed the first, and a plain digit is the constant case where
 the priority is same at every length.
+
+A `[:n:]` guard opens both ends, so the pattern matches any length. The
+priority is the first digit in a run of `n` letters, and each letter away from
+`n`, in either direction, lowers it by one until it reaches the second digit.
+So `[:4:] @Beh 9\6 @Ain` reads:
+
+| Length   | 2 | 3 | 4 | 5 | 6 | 7+ |
+| -------- | - | - | - | - | - | -- |
+| Priority | 7 | 8 | 9 | 8 | 7 | 6  |
+
+Use it when a run of some length is the best place to stretch and both shorter
+and longer runs are worse.
 
 #### Suppression: `!`
 
