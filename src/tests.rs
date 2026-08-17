@@ -642,25 +642,25 @@ fn group_name_stops_at_non_name_characters() {
 fn a_seat_kashida_is_transparent() {
     let set = builtin_pattern_set("arabic-naskh").unwrap();
     for (word, seated, bare) in [
-        ("ٱلرَّحۡمَـٰنِ", vec![(3, 2), (4, 2)], vec![(3, 2), (4, 2)]),
+        ("ٱلرَّحۡمَـٰنِ", vec![(3, 2), (5, 2)], vec![(3, 2), (4, 2)]),
         (
             "ٱلۡعَـٰلَمِینَ",
-            vec![(2, 1), (5, 1), (6, 4)],
+            vec![(3, 1), (5, 1), (6, 4)],
             vec![(2, 1), (4, 1), (5, 4)],
         ),
         ("وَبِٱلۡـَٔاخِرَةِ", vec![(1, 4), (6, 1)], vec![(1, 4), (5, 1)]),
         (
             "ٱلنَّبِیِّـۧنَ",
-            vec![(2, 5), (3, 5), (4, 5)],
+            vec![(2, 5), (3, 5), (5, 5)],
             vec![(2, 5), (3, 5), (4, 5)],
         ),
         (
             "تَأۡمَـ۫نَّا",
-            vec![(0, 4), (2, 2), (4, 5)],
+            vec![(0, 4), (3, 2), (4, 5)],
             vec![(0, 4), (2, 2), (3, 5)],
         ),
         ("لِیَسُـࣳۤـُٔوا۟", Vec::new(), Vec::new()),
-        ("ٱلصَّـٰلِحَـٰتِ", vec![(2, 5)], vec![(2, 5)]),
+        ("ٱلصَّـٰلِحَـٰتِ", vec![(3, 5)], vec![(2, 5)]),
     ] {
         assert_eq!(find_kashida_points(word, set, true).0, word, "{word}");
         assert_eq!(builtin_points("arabic-naskh", word), seated, "{word}");

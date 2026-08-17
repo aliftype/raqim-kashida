@@ -113,8 +113,15 @@ pub(crate) fn resolve_run(
     let mut out = Vec::new();
     for point in 0..len - 1 {
         if let Some(priority) = priorities[point] {
+            // If there is a mark seat, the kashida point goes after it (in
+            // other words the mark seat is effectively part of the previous
+            // cluster).
+            let mut index = run[point];
+            while graphemes.get(index + 1).is_some_and(|g| g.is_mark_seat) {
+                index += 1;
+            }
             out.push(KashidaPoint {
-                index: run[point] as u32,
+                index: index as u32,
                 priority,
             });
         }
