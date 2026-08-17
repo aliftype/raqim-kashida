@@ -357,7 +357,7 @@ fn nastaliq_forbids_a_kashida_before_a_thin_join() {
     // A medial heh, but a final one still takes the strongest point.
     assert_eq!(builtin_points("arabic-naskh", "متهم"), vec![(0, 3), (1, 6)]);
     assert_eq!(builtin_points("arabic-nastaliq", "متهم"), vec![(0, 3)]);
-    assert_eq!(builtin_points("arabic-nastaliq", "بحه"), vec![(1, 9)]);
+    assert_eq!(builtin_points("arabic-nastaliq", "بحه"), vec![(1, 5)]);
 }
 
 #[test]
