@@ -19,16 +19,16 @@
 # then between the before last letter and the letter before it, and so on up
 # to the midpoint of the word.
 * 8 * .
-[4+] * 7 * * .
-[6+] * 6 * * * .
-[8+] * 5 * * * * .
-[10+] * 4 * * * * * .
+[4:] * 7 * * .
+[6:] * 6 * * * .
+[8:] * 5 * * * * .
+[10:] * 4 * * * * * .
 
 # Rule 2: if that is not possible, between the first letter and the letter
 # after it, then between the second letter and the one after it, and so on.
-[3+] . * 3 *
-[5+] . * * 2 *
-[7+] . * * * 1 *
+[3:] . * 3 *
+[5:] . * * 2 *
+[7:] . * * * 1 *
 
 
 # Rule 3: inter-word justification. Not relevant here.

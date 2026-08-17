@@ -177,15 +177,15 @@ fn a_suppression_holds_until_a_later_rule_speaks() {
 fn length_guards_gate_on_joined_run_length() {
     assert_eq!(points("بتر", "[3]ب2ت"), vec![(0, 2)]);
     assert_eq!(points("بتر", "[4]ب2ت"), Vec::new());
-    assert_eq!(points("بتر", "[2-3]ب2ت"), vec![(0, 2)]);
-    assert_eq!(points("بتبت", "[2-3]ب2ت"), Vec::new());
-    assert_eq!(points("بت", "[2+]ب2ت"), vec![(0, 2)]);
-    assert_eq!(points("بت", "[3+]ب2ت"), Vec::new());
+    assert_eq!(points("بتر", "[2:3]ب2ت"), vec![(0, 2)]);
+    assert_eq!(points("بتبت", "[2:3]ب2ت"), Vec::new());
+    assert_eq!(points("بت", "[2:]ب2ت"), vec![(0, 2)]);
+    assert_eq!(points("بت", "[3:]ب2ت"), Vec::new());
 }
 
 #[test]
 fn priority_steps_down_as_run_grows() {
-    let steps = |word: &str| points(word, "[4+]ب6\\3ت");
+    let steps = |word: &str| points(word, "[4:]ب6\\3ت");
     assert_eq!(steps("بتنن"), vec![(0, 6)]); // len 4
     assert_eq!(steps("بتننن"), vec![(0, 5)]); // len 5
     assert_eq!(steps("بتنننن"), vec![(0, 4)]); // len 6
@@ -282,10 +282,10 @@ fn ignores_comments_and_blank_lines() {
 fn rejects_malformed_pattern_lines() {
     assert!(err_msg("[3ب2ت").contains("Unterminated length guard"));
     assert!(err_msg("[x]ب2ت").contains("Invalid length guard"));
-    assert!(err_msg("[x+]ب2ت").contains("Invalid length guard"));
-    assert!(err_msg("[2-y]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[x:]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[2:y]ب2ت").contains("Invalid length guard"));
     assert!(err_msg("[4.5]ب2ت").contains("Invalid length guard"));
-    assert!(err_msg("[-3]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[:3]ب2ت").contains("Invalid length guard"));
     assert!(err_msg("@").contains("Empty group name"));
     assert!(err_msg("=").contains("Empty group name"));
     assert!(err_msg("ب.ت").contains("Token after a trailing"));
@@ -571,8 +571,8 @@ fn degenerate_length_guards_are_rejected() {
     // nothing. All of these compiled silently dead before.
     assert!(err_msg("[0]ب2ت").contains("Invalid length guard"));
     assert!(err_msg("[1]ب2ت").contains("Invalid length guard"));
-    assert!(err_msg("[1+]ب2ت").contains("Invalid length guard"));
-    assert!(err_msg("[3-2]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[1:]ب2ت").contains("Invalid length guard"));
+    assert!(err_msg("[3:2]ب2ت").contains("Invalid length guard"));
 }
 
 #[test]
@@ -604,7 +604,7 @@ fn find_kashida_points_strips_or_keeps_user_tatweel() {
 fn readme_length_ladder_words() {
     // The README's length-dependent priority walkthrough. In the مبتعث words
     // the connection is teh–ain: teh is in the beh Joining_Group.
-    let p = |w: &str| points(w, "[4+] @Beh 9\\6 @Ain");
+    let p = |w: &str| points(w, "[4:] @Beh 9\\6 @Ain");
     assert_eq!(p("بعثة"), vec![(0, 9)]); // four-letter run, the floor
     assert_eq!(p("مبتعث"), vec![(2, 8)]); // five
     assert_eq!(p("المبتعث"), vec![(4, 7)]); // six: ال's alef stands apart

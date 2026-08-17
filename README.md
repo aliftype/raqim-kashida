@@ -58,7 +58,7 @@ comment   ::= "#" anything
 use       ::= "use" set_name
 
 pattern   ::= guard? element+
-guard     ::= "[" bound ("+" | "-" bound)? "]"
+guard     ::= "[" (bound | bound ":" | bound ":" bound) "]"
 element   ::= token | weight | "."
 
 token     ::= reference | set | "^" (set | reference) | letter | "*"
@@ -136,8 +136,10 @@ A `[…]` prefix restricts a pattern to joined runs of a given **letter count**
 | Guard   | Run length  |
 | ------- | ----------- |
 | `[4]`   | exactly 4   |
-| `[4+]`  | 4 or more   |
-| `[2-3]` | 2 through 3 |
+| `[4:]`  | 4 or more   |
+| `[2:3]` | 2 through 3 |
+
+The bounds read like a Python slice: a colon opens that end.
 
 The length is the joined run length, not the word length. In “المبتعث” the “ا”
 is its own joined run and “لمبتعث” is another joined run.
@@ -167,10 +169,10 @@ edge).
 A priority written as two digits (`9\6`) drops as the run grows. For example:
 
 ```
-[4+] @Beh 9\6 @Ain      # a kashida between a beh and an ain
+[4:] @Beh 9\6 @Ain      # a kashida between a beh and an ain
 ```
 
-The `[4+]` guard matches joined runs of four letters or more, so four is this
+The `[4:]` guard matches joined runs of four letters or more, so four is this
 rule’s **floor length**, where the priority is the first digit; each letter
 beyond the floor lowers the priority by one until it reaches the second digit:
 

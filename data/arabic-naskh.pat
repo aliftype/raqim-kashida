@@ -13,7 +13,7 @@
 # our handling of the [B06] §3.2 word-length rules (4-letter words stretch
 # best, 5 is disputed, longer defer to the matrix) so priority peaks in a
 # 4-letter run and drops by 1 per extra letter, holding from length 7
-# ([4]…[7+]), runs of 3 use the gates below, and runs of 2 get nothing from
+# ([4]…[7:]), runs of 3 use the gates below, and runs of 2 get nothing from
 # the matrix.
 
 
@@ -30,40 +30,40 @@
 # block followers are grouped by priority (not the paper's column order).
 
 # beh family
-[4+] @Beh 9\6 @Tah
-[4+] @Beh 6\3 {@Alef @Meem @Noon @Heh}
-[4+] @Beh 3\0 {@Hah @Dal @Reh @Lam}
+[4:] @Beh 9\6 @Tah
+[4:] @Beh 6\3 {@Alef @Meem @Noon @Heh}
+[4:] @Beh 3\0 {@Hah @Dal @Reh @Lam}
 
 # hah family
-[4+] @Hah 9\6 @Tah
-[4+] @Hah 3\0 {@Alef @Hah @Dal @Reh @Ain @Kaf @Lam @Meem @Noon @Heh @Waw}
+[4:] @Hah 9\6 @Tah
+[4:] @Hah 3\0 {@Alef @Hah @Dal @Reh @Ain @Kaf @Lam @Meem @Noon @Heh @Waw}
 
 # ain family
-[4+] @Ain 9\6 @Tah
-[4+] @Ain 3\0 {@Alef @Hah @Dal @Reh @Ain @Lam @Meem @Noon @Heh}
+[4:] @Ain 9\6 @Tah
+[4:] @Ain 3\0 {@Alef @Hah @Dal @Reh @Ain @Lam @Meem @Noon @Heh}
 
 # seen, sad and tah families
-[4+] {@Seen @Sad @Tah} 6\3 {@Alef @Beh @Reh @Seen @Sad @Tah @Kaf @Lam @Noon}
-[4+] {@Seen @Sad @Tah} 3\0 {@Hah @Dal @Ain @Feh @Qaf @Meem @Heh @Waw}
+[4:] {@Seen @Sad @Tah} 6\3 {@Alef @Beh @Reh @Seen @Sad @Tah @Kaf @Lam @Noon}
+[4:] {@Seen @Sad @Tah} 3\0 {@Hah @Dal @Ain @Feh @Qaf @Meem @Heh @Waw}
 
 # feh/qaf families
-[4+] @Feh 9\6 @Tah
-[4+] @Feh 6\3 @Alef
-[4+] @Feh 3\0 {@Hah @Dal @Reh @Ain @Lam @Meem @Waw}
+[4:] @Feh 9\6 @Tah
+[4:] @Feh 6\3 @Alef
+[4:] @Feh 3\0 {@Hah @Dal @Reh @Ain @Lam @Meem @Waw}
 
 # kaf and lam families (the Afifi rules suppress kashida after either, so its rows are
 # recorded here and left commented out).
-# [4+] @Kaf 6\3 {@Dal @Reh}
-# [4+] @Kaf 3\0 {@Alef @Hah @Sad @Kaf @Lam @Meem @Noon @Heh @Waw}
-# [4+] @Lam 3\0 {@Hah @Dal @Ain @Meem @Noon @Heh}
+# [4:] @Kaf 6\3 {@Dal @Reh}
+# [4:] @Kaf 3\0 {@Alef @Hah @Sad @Kaf @Lam @Meem @Noon @Heh @Waw}
+# [4:] @Lam 3\0 {@Hah @Dal @Ain @Meem @Noon @Heh}
 
 # meem
-[4+] @Meem 6\3 {@Tah @Dal @Reh}
-[4+] @Meem 3\0 {@Alef @Hah @Ain @Kaf @Lam @Meem @Noon @Heh @Waw}
+[4:] @Meem 6\3 {@Tah @Dal @Reh}
+[4:] @Meem 3\0 {@Alef @Hah @Ain @Kaf @Lam @Meem @Noon @Heh @Waw}
 
 # heh
-[4+] @Heh 6\3 @Beh
-[4+] @Heh 3\0 {@Seen @Reh @Dal @Heh}
+[4:] @Heh 6\3 @Beh
+[4:] @Heh 3\0 {@Seen @Reh @Dal @Heh}
 
 # [B06] §3.2: a word ending in a heh pronoun is best stretched just before
 # the heh. @Heh folds to the whole family (teh-marbuta is the heh bowl plus

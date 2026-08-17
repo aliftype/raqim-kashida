@@ -192,7 +192,7 @@ impl Parser<'_> {
         })
     }
 
-    // guard ::= "[" bound ("+" | "-" bound)? "]"
+    // guard ::= "[" (bound | bound ":" | bound ":" bound) "]"
     fn guard(&mut self) -> Result<LengthGuard, CompileErrorKind> {
         self.pos += 1; // the `[`
         let start = self.pos;
@@ -212,12 +212,12 @@ impl Parser<'_> {
             }
             s.parse::<usize>().map_err(|_| invalid())
         };
-        let guard = if let Some(stripped) = trimmed.strip_suffix('+') {
+        let guard = if let Some(stripped) = trimmed.strip_suffix(':') {
             LengthGuard::Min(bound(stripped)?)
-        } else if let Some(dash) = trimmed.find('-').filter(|&dash| dash > 0) {
+        } else if let Some(colon) = trimmed.find(':') {
             LengthGuard::Range {
-                lo: bound(&trimmed[..dash])?,
-                hi: bound(&trimmed[dash + 1..])?,
+                lo: bound(&trimmed[..colon])?,
+                hi: bound(&trimmed[colon + 1..])?,
             }
         } else {
             LengthGuard::Exact(bound(trimmed)?)
