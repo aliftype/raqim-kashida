@@ -173,7 +173,7 @@ dependencies = [
 
 [[package]]
 name = "raqim-kashida"
-version = "0.1.3"
+version = "0.2.0"
 dependencies = [
  "icu_properties",
  "icu_segmenter",
