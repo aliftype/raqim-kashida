@@ -36,13 +36,6 @@ fn syriac_set() -> &'static PatternSet {
 
 /// The names of the built-in pattern sets:
 ///
-/// - `"arabic-simple"`: Arabic _kashida_ rules suitable for _simple_
-///   typefaces, i.e. those where letters have only the basic forms with no or
-///   very limited relations between letters (no or very few ligatures,
-///   contextual alternates, and so on).
-///   It is also suitable for _Kufic_ styles of Arabic in general.
-///   The rules are based on [Microsoft justification rules], which are rooted
-///   in Arabic newspaper typesetting.
 /// - `"arabic-naskh"`: Classical Arabic _kashida_ insertion rules suitable for
 ///   classical _Naskh_ and _Naskh_-like typefaces (e.g. Thuluth) that follow
 ///   the classical rules of Arabic calligraphy and have advanced relations
@@ -56,6 +49,13 @@ fn syriac_set() -> &'static PatternSet {
 ///   some tailoring for _Nastaliq_. Currently based on Afifi’s _Silsilat
 ///   taalim al-khatt al-arabi_, part 9: _al-khatt al-farisi_ (سلسلة تعليم الخط
 ///   العربي، الجزء التاسع: الخط الفارسي).
+/// - `"arabic-simple"`: Arabic _kashida_ rules suitable for _simple_
+///   typefaces, i.e. those where letters have only the basic forms with no or
+///   very limited relations between letters (no or very few ligatures,
+///   contextual alternates, and so on).
+///   It is also suitable for _Kufic_ styles of Arabic in general.
+///   The rules are based on [Microsoft justification rules], which are rooted
+///   in Arabic newspaper typesetting.
 /// - `"syriac"`: Syriac, following the [guidelines proposed for justified
 ///   Syriac].
 ///
@@ -65,7 +65,7 @@ fn syriac_set() -> &'static PatternSet {
 /// [Benatia et al.]: https://www.tug.org/tugboat/tb27-2/tb87benatia.pdf
 /// [guidelines proposed for justified Syriac]: https://bugs.documentfoundation.org/show_bug.cgi?id=140767
 pub fn builtin_pattern_set_names() -> &'static [&'static str] {
-    &["arabic-simple", "arabic-naskh", "arabic-nastaliq", "syriac"]
+    &["arabic-naskh", "arabic-nastaliq", "arabic-simple", "syriac"]
 }
 
 /// Whether `name` refers to a built-in pattern set, without compiling it,
@@ -78,9 +78,9 @@ pub fn is_builtin_pattern_set(name: &str) -> bool {
 /// if there is none. [`builtin_pattern_set_names`] lists and describes them.
 pub fn builtin_pattern_set(name: &str) -> Option<&'static PatternSet> {
     match name {
-        "arabic-simple" => Some(arabic_simple_set()),
         "arabic-naskh" => Some(arabic_naskh_set()),
         "arabic-nastaliq" => Some(arabic_nastaliq_set()),
+        "arabic-simple" => Some(arabic_simple_set()),
         "syriac" => Some(syriac_set()),
         _ => None,
     }

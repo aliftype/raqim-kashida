@@ -337,7 +337,7 @@ fn rejects_malformed_pattern_lines() {
 fn builtin_sets_resolve_and_are_named() {
     assert_eq!(
         builtin_pattern_set_names(),
-        ["arabic-simple", "arabic-naskh", "arabic-nastaliq", "syriac"]
+        ["arabic-naskh", "arabic-nastaliq", "arabic-simple", "syriac"]
     );
     // Every listed name resolves, and nothing else does.
     for name in builtin_pattern_set_names() {
