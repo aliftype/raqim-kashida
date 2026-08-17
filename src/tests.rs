@@ -349,6 +349,26 @@ fn builtin_sets_resolve_and_are_named() {
 }
 
 #[test]
+fn the_naskh_matrix_reaches_short_runs() {
+    let p = |word: &str| builtin_points("arabic-naskh", word);
+
+    // beh-tah is the matrix's 9\6 pairing. The priority is highest in a
+    // four-letter run and drops by one for every letter away from that.
+    assert_eq!(p("بط"), vec![(0, 7)]); // len 2
+    assert_eq!(p("مبط"), vec![(0, 2), (1, 8)]); // len 3
+    assert_eq!(p("ممبط"), vec![(0, 3), (1, 3), (2, 9)]); // len 4
+    assert_eq!(p("مممبط"), vec![(0, 2), (1, 2), (2, 2), (3, 8)]); // len 5
+
+    // beh-meem is the 6\3 pairing, three lower at every length.
+    assert_eq!(p("بم"), vec![(0, 4)]); // len 2
+    assert_eq!(p("ممبم"), vec![(0, 3), (1, 3), (2, 6)]); // len 4
+
+    // beh-beh is an empty cell in figure 25, so it gets no point at any length.
+    assert_eq!(p("بب"), Vec::new()); // len 2
+    assert_eq!(p("ممبب"), vec![(0, 3), (1, 3)]); // len 4, nothing at the beh-beh
+}
+
+#[test]
 fn nastaliq_forbids_a_kashida_after_an_initial_beh() {
     // Naskh allows it, Nastaliq does not.
     assert_eq!(
