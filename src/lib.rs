@@ -1,7 +1,7 @@
 //! A library for finding _kashida_ (_tatweel_) insertion points and
 //! priorities, driven by a small pattern language.
 //!
-//! Given a word and a compiled pattern set, the crate returns the possible
+//! Given a text and a compiled pattern set, the crate returns the possible
 //! _kashida_ insertion points and their priorities.
 
 #![forbid(unsafe_code)]
@@ -35,9 +35,9 @@ pub struct KashidaPoint {
     pub priority: u8,
 }
 
-/// Kashida insertion points for `word` from the pattern set alone.
-pub fn find_kashida_points_patterns(word: &str, set: &PatternSet) -> Vec<KashidaPoint> {
-    let graphemes = split_graphemes(word);
+/// Kashida insertion points for `text` from the pattern set alone.
+pub fn find_kashida_points_patterns(text: &str, set: &PatternSet) -> Vec<KashidaPoint> {
+    let graphemes = split_graphemes(text);
     let mut out = Vec::new();
     for run in joined_runs(&graphemes) {
         out.extend(resolve_run(&graphemes, &run, set));
@@ -45,12 +45,12 @@ pub fn find_kashida_points_patterns(word: &str, set: &PatternSet) -> Vec<Kashida
     out
 }
 
-fn strip_bare_tatweel(word: &str) -> String {
-    if !word.contains(KASHIDA) {
-        return word.to_string();
+fn strip_bare_tatweel(text: &str) -> String {
+    if !text.contains(KASHIDA) {
+        return text.to_string();
     }
-    let chars: Vec<char> = word.chars().collect();
-    let mut out = String::with_capacity(word.len());
+    let chars: Vec<char> = text.chars().collect();
+    let mut out = String::with_capacity(text.len());
     for k in 0..chars.len() {
         if is_bare_tatweel_at(&chars, k) {
             continue;
@@ -60,7 +60,7 @@ fn strip_bare_tatweel(word: &str) -> String {
     out
 }
 
-/// Kashida insertion points for `word` under the given pattern set.
+/// Kashida insertion points for `text` under the given pattern set.
 ///
 /// Any **bare** kashida already in the text is stripped first, unless
 /// `remove_existing_kashida` is `false`. A kashida carrying a mark serves as
@@ -82,14 +82,14 @@ fn strip_bare_tatweel(word: &str) -> String {
 /// }
 /// ```
 pub fn find_kashida_points(
-    word: &str,
+    text: &str,
     set: &PatternSet,
     remove_existing_kashida: bool,
 ) -> (String, Vec<KashidaPoint>) {
     let cleaned = if remove_existing_kashida {
-        strip_bare_tatweel(word)
+        strip_bare_tatweel(text)
     } else {
-        word.to_string()
+        text.to_string()
     };
     let points = find_kashida_points_patterns(&cleaned, set);
     (cleaned, points)

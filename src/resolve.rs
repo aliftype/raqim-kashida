@@ -1,4 +1,4 @@
-//! Matching a compiled pattern set against the joined runs of a word.
+//! Matching a compiled pattern set against the joined runs of the text.
 
 use crate::grapheme::{form_of, is_joining_type, Grapheme};
 use crate::pattern::{LengthGuard, PatternSet, Token, Weight};

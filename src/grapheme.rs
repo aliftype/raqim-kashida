@@ -1,6 +1,6 @@
 //! Grapheme clustering and Arabic-like joining analysis.
 //!
-//! Segments a word into UAX #29 grapheme clusters, tags each with its base
+//! Segments text into UAX #29 grapheme clusters, tags each with its base
 //! codepoint's Joining_Type / Joining_Group, and derives the joining
 //! behavior: joined runs, joins-left/right, and positional form.
 
@@ -36,13 +36,13 @@ pub(crate) fn is_bare_tatweel_at(chars: &[char], k: usize) -> bool {
     !matches!(chars.get(k + 1), Some(&c) if joining_types.get(c) == JoiningType::Transparent)
 }
 
-pub(crate) fn split_graphemes(word: &str) -> Vec<Grapheme> {
+pub(crate) fn split_graphemes(text: &str) -> Vec<Grapheme> {
     let joining_types = CodePointMapData::<JoiningType>::new();
     let joining_groups = CodePointMapData::<JoiningGroup>::new();
-    let boundaries: Vec<usize> = GraphemeClusterSegmenter::new().segment_str(word).collect();
+    let boundaries: Vec<usize> = GraphemeClusterSegmenter::new().segment_str(text).collect();
     let mut out = Vec::with_capacity(boundaries.len().saturating_sub(1));
     for pair in boundaries.windows(2) {
-        let cluster = &word[pair[0]..pair[1]];
+        let cluster = &text[pair[0]..pair[1]];
         let base = cluster.chars().next().expect("non-empty cluster");
         let mut joining_type = joining_types.get(base);
         // A ZWJ/ZWNJ change joining type.

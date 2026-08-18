@@ -3,7 +3,7 @@
 A library for finding _kashida_ (_tatweel_) insertion points and priorities,
 driven by a small pattern language.
 
-Given a word and a compiled pattern set, the crate returns the possible
+Given a text and a compiled pattern set, the crate returns the possible
 _kashida_ insertion points and their priorities:
 
 ```rust
