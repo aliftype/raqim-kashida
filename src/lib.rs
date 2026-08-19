@@ -3,6 +3,51 @@
 //!
 //! Given a text and a compiled pattern set, the crate returns the possible
 //! _kashida_ insertion points and their priorities.
+//!
+//! # Example
+//!
+//! Here is an example that breaks a text into lines and justifies them by
+//! inserting _kashida_. For simplicity, the example assumes a monospaced
+//! font where every character has the same width.
+//!
+//! 1. Break text into lines, greedily
+//! 2. For each line, insert the highest priority _kashidas_ first across the
+//!    line:
+//!    1. Only the highest _kashida_ point in any given word
+//!    2. Up to `MAX_KASHIDA` _kashidas_ at each point
+//! 4. Repeat with the next priority, until the line is filled, or there are no
+//!    more _kashida_ points to fill.
+//!
+//! The example is also runnable with
+//! `cargo run --example justify`:
+//!
+//! ```
+#![doc = include_str!("../examples/justify.rs")]
+//! ```
+//!
+//! Which prints:
+//!
+//! <pre dir="rtl">
+//! unjustified
+//! قال أفلاطون: «الخط عقال العقل».
+//! وقال إقليدس الإغريقي: «الخط
+//! هندسة روحانية وإن ظهرت بآلة
+//! جسمانية». وقال أبو دلف رحالة
+//! القرن العاشر الميلادي: «الخط
+//! رياض العلوم». وقال النظام
+//! المعتزلي: «الخط أصيل في الروح
+//! وإن ظهر بحواس البدن».
+//!
+//! justified
+//! قال أفلاطون: «الخـط عقال العقل».
+//! وقــال إقليـدس الإغريقي: «الخــط
+//! هندســة روحانيــة وإن ظهرت بـآلة
+//! جسمانيــة». وقــال أبو دلف رحالة
+//! القرن العاشــر الميلادي: «الخــط
+//! ريــاض العـلوم». وقــال النــظام
+//! المعتزلي: «الخــط أصـيل في الروح
+//! وإن ظهر بحواس البدن».
+//! </pre>
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]

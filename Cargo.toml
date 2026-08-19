@@ -9,7 +9,7 @@ repository = "https://github.com/aliftype/raqim-kashida"
 readme = "README.md"
 keywords = ["arabic", "kashida", "tatweel", "justification", "typesetting"]
 categories = ["text-processing", "internationalization"]
-include = ["/src/**/*", "/data/*.pat", "/README.md", "/LICENSE"]
+include = ["/src/**/*", "/examples/*.rs", "/data/*.pat", "/README.md", "/LICENSE"]
 
 [lib]
 name = "kashida"

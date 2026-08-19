@@ -4,18 +4,7 @@ A library for finding _kashida_ (_tatweel_) insertion points and priorities,
 driven by a small pattern language.
 
 Given a text and a compiled pattern set, the crate returns the possible
-_kashida_ insertion points and their priorities:
-
-```rust
-use kashida::{builtin_pattern_set, find_kashida_points};
-
-let set = builtin_pattern_set("arabic-simple").unwrap();
-let (cleaned, points) = find_kashida_points("بيت", set, true);
-for point in points {
-    // A kashida can be inserted after the grapheme cluster `point.index`.
-    println!("{} @ {}", point.priority, point.index);
-}
-```
+_kashida_ insertion points and their priorities.
 
 The _kashida_ insertion points are detected based on text analysis and
 _kashida_ rules. It does not take fonts or shaping into account. The actual
