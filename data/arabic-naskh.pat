@@ -83,3 +83,8 @@
 # Muhammad Mu’nis in his al-Mizan al-ma’luf explicitly says lam is treated
 # exactly like beh and gives examples of stretching initial and medial lam.
 {@Kaf @Lam} !
+
+# An initial beh followed by a high medial beh gets a kashida.
+. @Beh 2 @Beh {@Beh @Seen} # Before high middle tooth.
+. @Beh 6 @Beh {@Noon @Reh} . # Before ascending tooth.
+. @Beh ! @Beh @Beh {@Reh @Noon} . # Not high middle tooth.

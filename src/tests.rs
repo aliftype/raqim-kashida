@@ -392,6 +392,33 @@ fn the_naskh_matrix_reaches_short_runs() {
 }
 
 #[test]
+fn naskh_allow_kashida_between_initial_beh_and_high_medial_beh() {
+    let p = |word: &str| builtin_points("arabic-naskh", word);
+
+    // Before a high middle tooth.
+    assert_eq!(p("ببب"), vec![(0, 2)]);
+    assert_eq!(p("ببس"), vec![(0, 2)]);
+    assert_eq!(p("تبسم"), vec![(0, 2), (2, 3)]);
+    // or before the ascending tooth.
+    assert_eq!(p("ببر"), vec![(0, 6), (1, 2)]);
+    assert_eq!(p("ببن"), vec![(0, 6), (1, 5)]);
+
+    // A low tooth gets no kashida.
+    assert_eq!(p("ببم"), vec![(1, 5)]);
+    assert_eq!(p("بب"), Vec::new());
+
+    // A tooth before a ascending tooth is not a high middle tooth.
+    assert_eq!(p("بببر"), vec![(2, 3)]);
+    assert_eq!(p("تبين"), vec![(2, 6)]);
+    // Before an ordinary tooth it is.
+    assert_eq!(p("بببم"), vec![(0, 2), (2, 6)]);
+    assert_eq!(p("يتبين"), vec![(0, 2), (3, 5)]);
+
+    // Only an initial tooth: a medial pair gets no kashida.
+    assert_eq!(p("مببب"), vec![]);
+}
+
+#[test]
 fn nastaliq_forbids_a_kashida_after_an_initial_beh() {
     // Naskh allows it, Nastaliq does not.
     assert_eq!(
