@@ -59,7 +59,7 @@
 
 # heh
 [:4:] @Heh 6\3 @Beh
-[:4:] @Heh 3\0 {@Seen @Reh @Dal @Heh}
+[:4:] @Heh 3\0 {@Alef @Seen @Reh @Dal @Lam @Heh} # Alef and Lam are my additions
 
 # [B06] §3.2: a word ending in a heh pronoun is best stretched just before
 # the heh. @Heh folds to the whole family (teh-marbuta is the heh bowl plus
