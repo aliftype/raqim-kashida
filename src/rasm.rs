@@ -16,7 +16,8 @@ pub(crate) struct RasmClass {
 
 // Classes that share the same rasm skeleton. This is per positional form,
 // since some letters share one skeleton in initial/medial and another in
-// isolated/final.
+// isolated/final. The first group in each class is the one whose skeleton
+// the class shares.
 pub(crate) const RASM_CLASSES: &[RasmClass] = &[
     // Yeh barree and yeh-with-tail are excluded since they have no
     // initial/medial form.
@@ -88,18 +89,15 @@ pub(crate) fn rasm_matches(
     grapheme_group: JoiningGroup,
     form: JoiningForm,
 ) -> bool {
-    if token_group == grapheme_group {
-        return true;
-    }
     for cls in RASM_CLASSES {
-        if !cls.forms.contains(&form) {
+        if !cls.forms.contains(&form) || !cls.groups.contains(&token_group) {
             continue;
         }
-        if cls.groups.contains(&token_group) && cls.groups.contains(&grapheme_group) {
-            return true;
-        }
+        // Only the first group’s token folds across the class.
+        // I.e. @Beh includes @Noon in initial/medial, but @Noon does not.
+        return cls.groups[0] == token_group && cls.groups.contains(&grapheme_group);
     }
-    false
+    token_group == grapheme_group
 }
 
 // A group reference is `@Name` where Name is a canonical Unicode Joining_Group

@@ -145,6 +145,29 @@ fn rasm_folding() {
         JoiningGroup::Qaf,
         JoiningForm::Final
     ));
+
+    // Folding is directional: a group whose skeleton belongs to another
+    // group in some forms does not match in those forms, not even itself.
+    assert!(!rasm_matches(
+        JoiningGroup::Noon,
+        JoiningGroup::Beh,
+        JoiningForm::Medial
+    ));
+    assert!(!rasm_matches(
+        JoiningGroup::Noon,
+        JoiningGroup::Noon,
+        JoiningForm::Medial
+    ));
+    assert!(rasm_matches(
+        JoiningGroup::Noon,
+        JoiningGroup::Nya,
+        JoiningForm::Final
+    ));
+    assert!(!rasm_matches(
+        JoiningGroup::Qaf,
+        JoiningGroup::Feh,
+        JoiningForm::Medial
+    ));
 }
 
 #[test]
@@ -355,17 +378,17 @@ fn the_naskh_matrix_reaches_short_runs() {
     // beh-tah is the matrix's 9\6 pairing. The priority is highest in a
     // four-letter run and drops by one for every letter away from that.
     assert_eq!(p("بط"), vec![(0, 7)]); // len 2
-    assert_eq!(p("مبط"), vec![(0, 2), (1, 8)]); // len 3
-    assert_eq!(p("ممبط"), vec![(0, 3), (1, 3), (2, 9)]); // len 4
-    assert_eq!(p("مممبط"), vec![(0, 2), (1, 2), (2, 2), (3, 8)]); // len 5
+    assert_eq!(p("مبط"), vec![(1, 8)]); // len 3
+    assert_eq!(p("ممبط"), vec![(0, 3), (2, 9)]); // len 4
+    assert_eq!(p("مممبط"), vec![(0, 2), (1, 2), (3, 8)]); // len 5
 
     // beh-meem is the 6\3 pairing, three lower at every length.
     assert_eq!(p("بم"), vec![(0, 4)]); // len 2
-    assert_eq!(p("ممبم"), vec![(0, 3), (1, 3), (2, 6)]); // len 4
+    assert_eq!(p("ممبم"), vec![(0, 3), (2, 6)]); // len 4
 
     // beh-beh is an empty cell in figure 25, so it gets no point at any length.
     assert_eq!(p("بب"), Vec::new()); // len 2
-    assert_eq!(p("ممبب"), vec![(0, 3), (1, 3)]); // len 4, nothing at the beh-beh
+    assert_eq!(p("ممبب"), vec![(0, 3)]); // len 4, nothing at the beh-beh
 }
 
 #[test]
@@ -381,7 +404,7 @@ fn nastaliq_forbids_a_kashida_after_an_initial_beh() {
     );
     // The tooth folds, so an initial noon counts too.
     assert_eq!(
-        builtin_points("arabic-nastaliq", "تبتم"),
+        builtin_points("arabic-nastaliq", "نهتم"),
         vec![(1, 6), (2, 6)]
     );
     // Only an initial one: a medial beh is untouched.
@@ -399,15 +422,12 @@ fn nastaliq_forbids_a_kashida_before_a_thin_join() {
     // Tah.
     assert_eq!(
         builtin_points("arabic-naskh", "متظلم"),
-        vec![(0, 2), (1, 8), (2, 5)]
+        vec![(1, 8), (2, 5)]
     );
-    assert_eq!(
-        builtin_points("arabic-nastaliq", "متظلم"),
-        vec![(0, 2), (2, 5)]
-    );
+    assert_eq!(builtin_points("arabic-nastaliq", "متظلم"), vec![(2, 5)]);
     // A medial heh, but a final one still takes the strongest point.
-    assert_eq!(builtin_points("arabic-naskh", "متهم"), vec![(0, 3), (1, 6)]);
-    assert_eq!(builtin_points("arabic-nastaliq", "متهم"), vec![(0, 3)]);
+    assert_eq!(builtin_points("arabic-naskh", "متهم"), vec![(1, 6)]);
+    assert_eq!(builtin_points("arabic-nastaliq", "متهم"), Vec::new());
     assert_eq!(builtin_points("arabic-nastaliq", "بحه"), vec![(1, 5)]);
 }
 
@@ -643,21 +663,13 @@ fn a_seat_kashida_is_transparent() {
     let set = builtin_pattern_set("arabic-naskh").unwrap();
     for (word, seated, bare) in [
         ("ٱلرَّحۡمَـٰنِ", vec![(3, 2), (5, 2)], vec![(3, 2), (4, 2)]),
-        (
-            "ٱلۡعَـٰلَمِینَ",
-            vec![(3, 1), (5, 1), (6, 4)],
-            vec![(2, 1), (4, 1), (5, 4)],
-        ),
+        ("ٱلۡعَـٰلَمِینَ", vec![(3, 1), (6, 4)], vec![(2, 1), (5, 4)]),
         ("وَبِٱلۡـَٔاخِرَةِ", vec![(1, 4), (6, 1)], vec![(1, 4), (5, 1)]),
-        (
-            "ٱلنَّبِیِّـۧنَ",
-            vec![(2, 5), (3, 5), (5, 5)],
-            vec![(2, 5), (3, 5), (4, 5)],
-        ),
+        ("ٱلنَّبِیِّـۧنَ", vec![(5, 5)], vec![(4, 5)]),
         (
             "تَأۡمَـ۫نَّا",
-            vec![(0, 4), (3, 2), (4, 5)],
-            vec![(0, 4), (2, 2), (3, 5)],
+            vec![(0, 4), (3, 6), (4, 5)],
+            vec![(0, 4), (2, 6), (3, 5)],
         ),
         ("لِیَسُـࣳۤـُٔوا۟", Vec::new(), Vec::new()),
         ("ٱلصَّـٰلِحَـٰتِ", vec![(3, 5)], vec![(2, 5)]),

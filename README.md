@@ -122,18 +122,21 @@ grapheme, and each weight then contributes to its connection.
 
 - **`@Name`** names a Unicode `Joining_Group` by its exact long name (e.g.
   `@Beh`, `@Teh_Marbuta`, `@Farsi_Yeh`). It folds **positionally** through the
-  rasm classes. For example: `@Beh` also matches the whole beh family as well
-  as noon and yeh in initial/medial positions. A group that does not fold just
-  matches itself alone.
+  rasm classes. For example: `@Beh` also matches the whole _beh_ family as well
+  as _noon_ and _yeh_ in initial and medial positions.
+  A group that folds only in a certain position, matched nothing in other
+  positions. For example, `@Noon` matches only in isolated and final positions,
+  and not in initial or medial positions (you would use `@Beh` in these).
+  A group that does not fold just matches itself alone.
 - **`=Name`** matches that `Joining_Group` alone, in any position, so `=Beh` is
-  beh joining group and nothing else.
+  _beh_ joining group and nothing else.
 - **`@Tatweel`** is the one non-group name: the tatweel U+0640 itself, as an
   exact literal.
 - **Letters** (`ب ت س ك …`) match only themselves. Use `@Name` or a group-set
   to match a whole group.
 - **`.`** matches the boundary of the joined run (i.e its start when leading,
   its end when trailing) not the word’s edge: e.g. `@Waw .` is a heh that ends
-  its joined run (a final or isolated waw) regardless if its position in the
+  its joined run (a final or isolated _waw_) regardless if its position in the
   word.
 
 Anything else in a pattern line (punctuation, a Latin letter, an Arabic-Indic
@@ -248,7 +251,7 @@ groups (and `^@Name` or `^=Name` is the single-group complement).
 
 ```
 * 9 {@Heh @Dal} .               # a final heh-family letter (Heh folds) or dal
-@Seen 8 ^{@Yeh @Farsi_Yeh} .    # any final but a yeh
+@Seen 8 ^{@Yeh @Yeh_Barree} .   # any final but a yeh
 ```
 
 ### Point placement
