@@ -198,8 +198,8 @@ beyond the floor lowers the priority by one until it reaches the second digit:
 | لمبتعث     | 6      | 7        |
 | لمبتعثة    | 7      | 6        |
 
-So the same rule marks the connection as excellent in a short run and merely good
-in a long one.
+So the same rule marks the connection as excellent in a short run and merely
+good in a long one.
 
 Without a guard the floor is 2, the shortest run with a connection. The second
 digit must not exceed the first, and a plain digit is the constant case where
@@ -230,8 +230,8 @@ special kind of priority, the **last** of them wins.
 
 ### Imports and overrides
 
-A `use` line includes a built-in pattern set in at that point, and the rules after it
-can override it:
+A `use` line includes a built-in pattern set in at that point, and the rules
+after it can override it:
 
 ```
 use arabic-naskh
@@ -256,8 +256,8 @@ groups (and `^@Name` or `^=Name` is the single-group complement).
 A kashida at the connection between graphemes `i` and `i+1` is inserted before
 grapheme `i+1`’s cluster. A point is a candidate only where there is a real
 connection: never after a right-joining letter such as `د ر و`, and never
-across one a ZWNJ suppresses. Suppressing kashida inside lam-alef ligature, for
-instance, is up to the pattern itself.
+across one a ZWNJ suppresses. Suppressing kashida inside _lam-alef_ ligature,
+for instance, is up to the pattern itself.
 
 ## License
 
