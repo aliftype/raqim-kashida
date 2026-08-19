@@ -22,12 +22,6 @@
 # [B06] §3.2: no kashida before a final yeh (handled by the Afifi rules at
 # the end)
 
-# [B06] §3.2 3-letter runs: the kashida follows the second letter
-# when an ain, tah, seen, or hah leads (Ibn Al‘afif) or an alef or lam
-# trails (Azzeftaoui).
-[3] {@Ain @Tah @Seen @Hah} * 6 *
-[3] * 6 * {@Alef @Lam}
-
 # [B06] §3.4 figure 25, the matrix itself: within each
 # block followers are grouped by priority (not the paper's column order).
 
