@@ -15,6 +15,29 @@ points to justify the text.
 
 The API is documented at [docs.rs](https://docs.rs/raqim-kashida).
 
+## Demo
+
+To showcase how this library cab be used in rustication, there is a
+[demo](https://aliftype.com/raqim-kashida/) that uses the library to find
+_kashida_ positions and uses them to justify the text. The justification itself
+is not part of the library, it is a basic solution just for the demo.
+
+## Building
+
+Building requires a Rust toolchain, version 1.82 or later.
+
+To build the library:
+
+```sh
+cargo build
+```
+
+To run the tests:
+
+```sh
+cargo test
+```
+
 ## Pattern sets
 
 Pattern sets describe where _kashida_ can be inserted and the priority of each
