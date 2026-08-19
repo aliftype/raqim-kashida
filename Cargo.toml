@@ -1,6 +1,6 @@
 [package]
 name = "raqim-kashida"
-version = "0.2.3"
+version = "0.2.4"
 edition = "2021"
 rust-version = "1.82"
 description = "Finding kashida (tatweel) insertion points and priorities, driven by a small pattern language."
