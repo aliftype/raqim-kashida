@@ -22,9 +22,9 @@ The API is documented at [docs.rs](https://docs.rs/raqim-kashida).
 ## Demo
 
 To showcase how this library cab be used in rustication, there is a
-[demo](https://aliftype.com/raqim-kashida/) that uses the library to find
-_kashida_ positions and uses them to justify the text. The justification itself
-is not part of the library, it is a basic solution just for the demo.
+[demo](https://aliftype.com/raqim-kashida/english/) that uses the library to
+find _kashida_ positions and uses them to justify the text. The justification
+itself is not part of the library, it is a basic solution just for the demo.
 
 ## Building
 
