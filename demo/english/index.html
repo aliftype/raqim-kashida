@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>raqim-kashida library demo</title>
+    <link rel="stylesheet" href="../style.css" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3DGD02NENY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-3DGD02NENY');
+    </script>
+  </head>
+  <body>
+    <h1>raqim-kashida library demo <span id="version"></span></h1>
+
+    <p>English | <a lang="ar" href="../" hreflang="ar">عربي</a></p>
+
+    <div class="app">
+      <aside>
+        <p>
+	  The raqim-kashida library finds all the possible points in the text
+	  that can take a <em>kashida</em> and gives each a priority. This is a
+	  demo that uses the reported <em>kashida</em> points for text
+	  justification.  Read more on
+          <a href="https://github.com/aliftype/raqim-kashida"
+            >the library repository</a
+          >.
+        </p>
+        <section>
+          <h2>Font</h2>
+          <label title="Choose a Google font that supports Arabic or Syriac">
+            <select id="google-font"></select>
+          </label>
+          <p>
+            Or choose a font file from your device:
+            <input
+              type="file"
+              id="font-file"
+              accept=".ttf,.otf,.woff,.woff2"
+              hidden />
+            <button
+              id="font-file-name"
+              type="button"
+              title="Load a font file from your device">
+              Choose a font
+            </button>
+          </p>
+        </section>
+
+        <section>
+          <h2>Layout</h2>
+          <label title="Justify all lines to the paragraph width">
+            <input type="checkbox" id="justify" checked /> Justify the text
+          </label>
+          <label title="Insert automatic kashidas to the text">
+            <input type="checkbox" id="kashida" checked /> Apply kashida
+          </label>
+          <label
+            title="Color the inserted kashidas and show each point’s priority">
+            <input type="checkbox" id="highlight" /> Highlight kashidas
+          </label>
+          <label
+            title="Keep the kashidas already in the text instead of stripping them">
+            <input type="checkbox" id="keep" checked /> Keep typed kashidas
+          </label>
+          <div class="sliders">
+            <label title="Font size of the paragraph"
+              ><span>Size</span>
+              <input
+                type="range"
+                id="size"
+                min="16"
+                max="80"
+                step="1"
+                value="24" />
+              <output id="size-out"></output>
+            </label>
+            <label title="Width of the text paragraph"
+              ><span>Paragraph width</span>
+              <input
+                type="range"
+                id="width"
+                min="240"
+                max="1000"
+                step="10"
+                value="600" />
+              <output id="width-out"></output>
+            </label>
+            <label title="Space between the lines of the paragraph"
+              ><span>Line spacing</span>
+              <input
+                type="range"
+                id="leading"
+                min="1"
+                max="3"
+                step="0.1"
+                value="1.5" />
+              <output id="leading-out"></output>
+            </label>
+            <label title="The minimum number of kashidas added to each point"
+              ><span>Min kashidas per point</span>
+              <input
+                type="range"
+                id="min"
+                min="1"
+                max="12"
+                step="1"
+                value="2" />
+              <output id="min-out"></output>
+            </label>
+            <label title="The maximum number of kashidas added to each point"
+              ><span>Max kashidas per point</span>
+              <input
+                type="range"
+                id="max"
+                min="1"
+                max="12"
+                step="1"
+                value="4" />
+              <output id="max-out"></output>
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2>Pattern set</h2>
+          <select id="set" title="A built-in pattern set"></select>
+          <p>Or write your own below.</p>
+          <textarea
+            id="patterns"
+            title="Write a pattern set here to override the selection above"
+            dir="ltr"
+            spellcheck="false"
+            rows="6"
+            placeholder="use arabic-naskh&#10;* 2 @Heh ."></textarea>
+          <p class="status" id="pattern-status" dir="auto"></p>
+        </section>
+
+        <section>
+          <h2>Kashida points in a word</h2>
+          <input
+            type="text"
+            id="probe"
+            dir="rtl"
+            title="Type a word to list its kashida points"
+            value="المستشفيات" />
+          <div id="probe-out"></div>
+        </section>
+      </aside>
+
+      <main>
+        <label class="pick">
+          <p>
+            Sample text
+            <select id="sample" title="Choose a sample text">
+              <option value="Arabic">Arabic</option>
+              <option value="Syriac">Syriac</option>
+            </select>
+          </p>
+        </label>
+        <p>You can edit the text below directly</p>
+        <div id="out" dir="rtl" contenteditable="true" spellcheck="false"></div>
+        <div id="labels" aria-hidden="true"></div>
+        <p id="stat"></p>
+      </main>
+    </div>
+
+    <script type="module" src="../demo.js"></script>
+  </body>
+</html>
