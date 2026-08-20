@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>تجربة مكتبة راقم-كشيدة</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3DGD02NENY"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-3DGD02NENY');
+    </script>
+  </head>
+  <body>
+    <h1>تجربة مكتبة راقم-كشيدة <span id="version"></span></h1>
+
+    <p>عربي | <a lang="en" href="english/" hreflang="en">English</a></p>
+
+    <div class="app">
+      <aside>
+        <p>
+          تحدد مكتبة راقم-كشيدة جميع المواضع التي تقبل الكشيدة في النص، وتحدد
+          أولوية كل منها. وهذه التجربة تستعمل مواضع الكشيدة المحددة لمساواة
+          النص. اقرأ المزيد في
+          <a href="https://github.com/aliftype/raqim-kashida">مستودع المكتبة</a
+          >.
+        </p>
+        <section>
+          <h2>الخط</h2>
+          <label title="اختر خطا من خطوط جوجل الداعمة للعربية أو السريانية">
+            <select id="google-font" dir="ltr"></select>
+          </label>
+          <p>
+            أو اختر ملف خط من على جهازك:
+            <input
+              type="file"
+              id="font-file"
+              accept=".ttf,.otf,.woff,.woff2"
+              hidden />
+            <button
+              id="font-file-name"
+              type="button"
+              title="ارفع ملف خط من جهازك">
+              اختر خطا
+            </button>
+          </p>
+        </section>
+
+        <section>
+          <h2>التنضيد</h2>
+          <label title="ساوِ جميع الأسطر لتصبح بعرض الفقرة">
+            <input type="checkbox" id="justify" checked /> ساوِ النص
+          </label>
+          <label title="أضف كشائد تلقائية إلى النص">
+            <input type="checkbox" id="kashida" checked /> أضف الكشائد
+          </label>
+          <label title="لون الكشائد المضافة وأظهر أولوية كل موضع">
+            <input type="checkbox" id="highlight" /> أبرز الكشائد
+          </label>
+          <label title="أبق الكشائد الموجودة في النص بدل حذفها">
+            <input type="checkbox" id="keep" checked /> أبق على الكشائد المكتوبة
+          </label>
+          <div class="sliders">
+            <label title="مقاس خط الفقرة"
+              ><span>الحجم</span>
+              <input
+                type="range"
+                id="size"
+                min="16"
+                max="80"
+                step="1"
+                value="24" />
+              <output id="size-out"></output>
+            </label>
+            <label title="عرض فقرة النص"
+              ><span>عرض الفقرة</span>
+              <input
+                type="range"
+                id="width"
+                min="240"
+                max="1000"
+                step="10"
+                value="600" />
+              <output id="width-out"></output>
+            </label>
+            <label title="المسافة بين أسطر الفقرة"
+              ><span>تباعد الأسطر</span>
+              <input
+                type="range"
+                id="leading"
+                min="1"
+                max="3"
+                step="0.1"
+                value="1.5" />
+              <output id="leading-out"></output>
+            </label>
+            <label title="أقل عدد من الكشائد يضاف إلى كل موضع"
+              ><span>أقل عدد كشائد في كل موضع</span>
+              <input
+                type="range"
+                id="min"
+                min="1"
+                max="12"
+                step="1"
+                value="2" />
+              <output id="min-out"></output>
+            </label>
+            <label title="أقصى عدد من الكشائد يضاف إلى كل موضع"
+              ><span>أقصى عدد كشائد في كل موضع</span>
+              <input
+                type="range"
+                id="max"
+                min="1"
+                max="12"
+                step="1"
+                value="4" />
+              <output id="max-out"></output>
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h2>مجموعة الأنماط</h2>
+          <select id="set" dir="ltr" title="مجموعة أنماط جاهزة"></select>
+          <p>أو اكتب أنماطك أدناه.</p>
+          <textarea
+            id="patterns"
+            title="اكتب مجموعة أنماط هنا لتحل محل المختارة أعلاه"
+            dir="ltr"
+            spellcheck="false"
+            rows="6"
+            placeholder="use arabic-naskh&#10;* 2 @Heh ."></textarea>
+          <p class="status" id="pattern-status" dir="auto"></p>
+        </section>
+
+        <section>
+          <h2>مواضع الكشيدة في الكلمة</h2>
+          <input
+            type="text"
+            id="probe"
+            dir="rtl"
+            title="اكتب كلمة لعرض مواضع الكشيدة فيها"
+            value="المستشفيات" />
+          <div id="probe-out"></div>
+        </section>
+      </aside>
+
+      <main>
+        <label class="pick">
+          <p>
+            نص التجربة
+            <select id="sample" title="اختر نصا للتجربة">
+              <option value="Arabic">عربي</option>
+              <option value="Syriac">سرياني</option>
+            </select>
+          </p>
+        </label>
+        <p>يمكنك تحرير النص أدناه مباشرة</p>
+        <div id="out" dir="rtl" contenteditable="true" spellcheck="false"></div>
+        <div id="labels" aria-hidden="true"></div>
+        <p id="stat"></p>
+      </main>
+    </div>
+
+    <script type="module" src="demo.js"></script>
+  </body>
+</html>
