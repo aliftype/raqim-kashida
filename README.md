@@ -1,3 +1,7 @@
+![Crates.io Version](https://img.shields.io/crates/v/raqim-kashida)
+![docs.rs](https://img.shields.io/docsrs/raqim-kashida)
+[![CI](https://github.com/aliftype/raqim-kashida/actions/workflows/ci.yml/badge.svg)](https://github.com/aliftype/raqim-kashida/actions/workflows/ci.yml)
+
 # raqim-kashida
 
 A library for finding _kashida_ (_tatweel_) insertion points and priorities,
