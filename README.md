@@ -15,6 +15,9 @@ _kashida_ rules. It does not take fonts or shaping into account. The actual
 justification is also out of scope. It is up to the caller to use the _kashida_
 points to justify the text.
 
+See [blog post](https://aliftype.com/blog/introducing-raqim-kashida/english) for
+more background.
+
 ## API
 
 The API is documented at [docs.rs](https://docs.rs/raqim-kashida).
