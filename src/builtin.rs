@@ -36,28 +36,29 @@ fn syriac_set() -> &'static PatternSet {
 
 /// The names of the built-in pattern sets:
 ///
-/// - `"arabic-naskh"`: Classical Arabic _kashida_ insertion rules suitable for
-///   classical _Naskh_ and _Naskh_-like typefaces (e.g. Thuluth) that follow
-///   the classical rules of Arabic calligraphy and have advanced relations
-///   between letters.
+/// - `"arabic-naskh"`: Arabic _kashida_ insertion rules suitable for classical
+///   _naskh_ and _naskh_-like typefaces (e.g. _thuluth_) that follow the
+///   classical rules of Arabic calligraphy and have advanced relations between
+///   letters.
 ///   The rules are derived mainly from the publications of [Benatia et al.]
 ///   on the subject, but overridden where they disagree with Fawzi Salim
 ///   Afifi’s _Taallum al-khatt al-arabi_, part 3 (تعلم الخط العربي، الجزء
 ///   الثالث).
-/// - `"arabic-nastaliq"`: Classical Arabic _kashida_ insertion rules suitable
-///   for classical _Nastaliq_ typefaces. Uses the `arabic-naskh` rules with
-///   some tailoring for _Nastaliq_. Currently based on Afifi’s _Silsilat
-///   taalim al-khatt al-arabi_, part 9: _al-khatt al-farisi_ (سلسلة تعليم الخط
-///   العربي، الجزء التاسع: الخط الفارسي).
-/// - `"arabic-simple"`: Arabic _kashida_ rules suitable for _simple_
+/// - `"arabic-nastaliq"`: Arabic _kashida_ insertion rules suitable for
+///   classical _nastaliq_ typefaces. Uses the `arabic-naskh` rules as a base
+///   with some tailoring for _nastaliq_.
+///   Currently based on Afifi’s _Silsilat taalim al-khatt al-arabi_, part 9:
+///   _al-khatt al-farisi_ (سلسلة تعليم الخط العربي، الجزء التاسع: الخط
+///   الفارسي).
+/// - `"arabic-simple"`: Arabic _kashida_ insertion rules suitable for “simple”
 ///   typefaces, i.e. those where letters have only the basic forms with no or
 ///   very limited relations between letters (no or very few ligatures,
-///   contextual alternates, and so on).
-///   It is also suitable for _Kufic_ styles of Arabic in general.
+///   contextual alternates, and so on). It is also suitable for _kufic_ styles
+///   of Arabic in general.
 ///   The rules are based on [Microsoft justification rules], which are rooted
 ///   in Arabic newspaper typesetting.
-/// - `"syriac"`: Syriac, following the [guidelines proposed for justified
-///   Syriac].
+/// - `"syriac"`: Syriac _kashida_ insertion rules, following the [guidelines
+///   proposed for justified Syriac].
 ///
 /// See the `.pat` sources for the rules themselves and their citations.
 ///
