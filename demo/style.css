@@ -1,0 +1,87 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 1.5rem;
+  font-family: sans-serif;
+}
+
+h1,
+h2 {
+  margin-block: 0.1em;
+}
+
+.app {
+  display: flex;
+  gap: 2.5rem;
+}
+
+aside > p {
+  max-width: 24rem;
+}
+
+label {
+  display: block;
+}
+
+.sliders {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+}
+
+.sliders label {
+  display: contents;
+}
+
+aside select,
+aside input[type="text"],
+aside textarea {
+  width: 100%;
+}
+
+main {
+  flex: 1;
+  min-width: 20rem;
+  position: relative;
+}
+
+/* Priority labels overlay the text; markup inside it would break shaping. */
+#labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+#labels span {
+  position: absolute;
+  font-size: 70%;
+  transform: translate(-50%, -50%);
+}
+
+.line {
+  white-space: nowrap;
+}
+
+#out.highlight .kashida,
+#labels span,
+.status.error {
+  color: orange;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th,
+td {
+  text-align: start;
+}
+th {
+  border-bottom: 1px solid;
+}
+
+a {
+  text-decoration: none;
+}
