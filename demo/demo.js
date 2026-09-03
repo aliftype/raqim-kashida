@@ -243,16 +243,16 @@ function layout({ text, width, min, max, justified, kashida, syriac }) {
 const fontStack = () => (state.family ? `"${state.family}", serif` : "serif");
 
 function syncFont() {
-  const size = document.getElementById("size").valueAsNumber;
-  const width = document.getElementById("width").valueAsNumber;
+  const fontSize = document.getElementById("font-size").valueAsNumber;
+  const paragraphWidth = document.getElementById("paragraph-width").valueAsNumber;
   const leading = document.getElementById("leading").value;
-  const font = `${size}px ${fontStack()}`;
+  const font = `${fontSize}px ${fontStack()}`;
   ctx.font = font;
   document.getElementById("out").style.font = font;
   document.getElementById("out").style.lineHeight = leading;
-  document.getElementById("out").style.width = `${width}px`;
-  document.getElementById("size-out").textContent = TEXT.px(num(size));
-  document.getElementById("width-out").textContent = TEXT.px(num(width));
+  document.getElementById("out").style.width = `${paragraphWidth}px`;
+  document.getElementById("size-out").textContent = TEXT.px(num(fontSize));
+  document.getElementById("width-out").textContent = TEXT.px(num(paragraphWidth));
   document.getElementById("leading-out").textContent = num(leading);
   document.getElementById("min-out").textContent = num(document.getElementById("min").value);
   document.getElementById("max-out").textContent = num(document.getElementById("max").value);
@@ -301,7 +301,7 @@ function paintLabels(show) {
   const runs = show ? document.getElementById("out").querySelectorAll(".kashida") : [];
   const origin = labels.getBoundingClientRect();
   const ascent = ctx.measureText(TATWEEL).fontBoundingBoxAscent;
-  const lift = 0.6 * document.getElementById("size").valueAsNumber;
+  const lift = 0.6 * document.getElementById("font-size").valueAsNumber;
   labels.innerHTML = Array.from(runs, (span) => {
     const box = span.getBoundingClientRect();
     const x = box.left + box.width / 2 - origin.left;
@@ -395,10 +395,10 @@ function render() {
   document.getElementById("highlight").disabled = !justified || !kashida;
   document.getElementById("out").classList.toggle("highlight", highlight);
 
-  const width = document.getElementById("width").valueAsNumber;
+  const paragraphWidth = document.getElementById("paragraph-width").valueAsNumber;
   const lines = layout({
     text: state.text,
-    width,
+    width: paragraphWidth,
     min: document.getElementById("min").valueAsNumber,
     max: document.getElementById("max").valueAsNumber,
     justified,
@@ -486,7 +486,7 @@ async function main() {
     })
     .join("");
 
-  for (const id of ["justify", "kashida", "highlight", "keep", "size", "width", "leading", "min", "max"]) {
+  for (const id of ["font-size", "highlight", "justify", "kashida", "keep", "leading", "min", "max", "paragraph-width"]) {
     document.getElementById(id).addEventListener("input", render);
   }
   document.getElementById("out").addEventListener("input", () => {
