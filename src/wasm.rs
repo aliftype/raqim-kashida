@@ -3,7 +3,7 @@
 
 use crate::{
     builtin_pattern_set, builtin_pattern_set_names, compile_pattern_text, find_kashida_points,
-    find_kashida_points_patterns, is_builtin_pattern_set, PatternSet,
+    is_builtin_pattern_set, PatternSet,
 };
 use wasm_bindgen::prelude::*;
 
@@ -58,14 +58,4 @@ pub fn find_kashida_points_js(
 ) -> Result<JsValue, JsValue> {
     let cleaned_and_points = find_kashida_points(word, &set.inner, remove_existing_kashida);
     serde_wasm_bindgen::to_value(&cleaned_and_points).map_err(Into::into)
-}
-
-/// Returns `{ index, priority }[]`.
-#[wasm_bindgen(js_name = findKashidaPointsPatterns)]
-pub fn find_kashida_points_patterns_js(
-    word: &str,
-    set: &CompiledPatternSet,
-) -> Result<JsValue, JsValue> {
-    let points = find_kashida_points_patterns(word, &set.inner);
-    serde_wasm_bindgen::to_value(&points).map_err(Into::into)
 }
