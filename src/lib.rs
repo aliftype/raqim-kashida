@@ -80,16 +80,6 @@ pub struct KashidaPoint {
     pub priority: u8,
 }
 
-/// Kashida insertion points for `text` from the pattern set alone.
-pub fn find_kashida_points_patterns(text: &str, set: &PatternSet) -> Vec<KashidaPoint> {
-    let graphemes = split_graphemes(text);
-    let mut out = Vec::new();
-    for run in joined_runs(&graphemes) {
-        out.extend(resolve_run(&graphemes, &run, set));
-    }
-    out
-}
-
 fn strip_bare_tatweel(text: &str) -> String {
     if !text.contains(KASHIDA) {
         return text.to_string();
@@ -136,6 +126,10 @@ pub fn find_kashida_points(
     } else {
         text.to_string()
     };
-    let points = find_kashida_points_patterns(&cleaned, set);
+    let graphemes = split_graphemes(&cleaned);
+    let mut points = Vec::new();
+    for run in joined_runs(&graphemes) {
+        points.extend(resolve_run(&graphemes, &run, set));
+    }
     (cleaned, points)
 }

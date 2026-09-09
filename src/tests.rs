@@ -1,15 +1,16 @@
 use crate::builtin::{builtin_pattern_set, builtin_pattern_set_names, is_builtin_pattern_set};
+use crate::find_kashida_points;
 use crate::grapheme::{
     form_of, joined_runs, joins_left, joins_right, split_graphemes, JoiningForm,
 };
 use crate::pattern::compile_pattern_text;
 use crate::rasm::{rasm_matches, resolve_group_name};
-use crate::{find_kashida_points, find_kashida_points_patterns};
 use icu_properties::props::JoiningGroup;
 
 fn points(word: &str, text: &str) -> Vec<(u32, u8)> {
     let set = compile_pattern_text(text).expect("pattern compiles");
-    find_kashida_points_patterns(word, &set)
+    find_kashida_points(word, &set, false)
+        .1
         .iter()
         .map(|k| (k.index, k.priority))
         .collect()
@@ -17,7 +18,8 @@ fn points(word: &str, text: &str) -> Vec<(u32, u8)> {
 
 fn builtin_points(name: &str, word: &str) -> Vec<(u32, u8)> {
     let set = builtin_pattern_set(name).expect("built-in set exists");
-    find_kashida_points_patterns(word, set)
+    find_kashida_points(word, set, false)
+        .1
         .iter()
         .map(|k| (k.index, k.priority))
         .collect()
