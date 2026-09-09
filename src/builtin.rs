@@ -69,14 +69,14 @@ pub fn builtin_pattern_set_names() -> &'static [&'static str] {
     &["arabic-naskh", "arabic-nastaliq", "arabic-simple", "syriac"]
 }
 
-/// Whether `name` refers to a built-in pattern set, without compiling it,
-/// unlike [`builtin_pattern_set`].
+/// Whether `name` refers to a built-in pattern set or not.
 pub fn is_builtin_pattern_set(name: &str) -> bool {
     builtin_pattern_set_names().contains(&name)
 }
 
-/// The built-in pattern set of that name, compiled on first use, or `None`
-/// if there is none. [`builtin_pattern_set_names`] lists and describes them.
+/// Get a built-in pattern set, compiled on first use, or `None` if there is no
+/// built-in pattern set with that name.
+/// [`builtin_pattern_set_names`] lists and describes built-in pattern sets.
 pub fn builtin_pattern_set(name: &str) -> Option<&'static PatternSet> {
     match name {
         "arabic-naskh" => Some(arabic_naskh_set()),
