@@ -3,7 +3,7 @@
 
 use crate::{
     builtin_pattern_set, builtin_pattern_set_names, compile_pattern_text, find_kashida_points,
-    is_builtin_pattern_set, PatternSet,
+    is_builtin_pattern_set, JoinedRunSegmenter, PatternSet,
 };
 use wasm_bindgen::prelude::*;
 
@@ -58,4 +58,14 @@ pub fn find_kashida_points_js(
 ) -> Result<JsValue, JsValue> {
     let cleaned_and_points = find_kashida_points(word, &set.inner, remove_existing_kashida);
     serde_wasm_bindgen::to_value(&cleaned_and_points).map_err(Into::into)
+}
+
+/// Returns joined run boundaries as UTF-16 code unit offsets.
+#[wasm_bindgen(js_name = segmentJoinedRuns)]
+pub fn segment_joined_runs_js(text: &str) -> Vec<u32> {
+    let utf16: Vec<u16> = text.encode_utf16().collect();
+    JoinedRunSegmenter::new()
+        .segment_utf16(&utf16)
+        .map(|boundary| boundary as u32)
+        .collect()
 }
