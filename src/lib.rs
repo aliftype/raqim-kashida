@@ -59,6 +59,7 @@ mod grapheme;
 mod pattern;
 mod rasm;
 mod resolve;
+mod segmenter;
 
 #[cfg(test)]
 mod tests;
@@ -66,8 +67,9 @@ mod tests;
 pub use builtin::{builtin_pattern_set, builtin_pattern_set_names, is_builtin_pattern_set};
 pub use error::{CompileError, CompileErrorKind};
 pub use pattern::{compile_pattern_text, PatternSet};
+pub use segmenter::JoinedRunSegmenter;
 
-use grapheme::{is_bare_tatweel_at, joined_runs, split_graphemes, KASHIDA};
+use grapheme::{find_run_indices, is_bare_tatweel_at, split_graphemes, KASHIDA};
 use resolve::resolve_run;
 
 /// A point where a kashida may be inserted.
@@ -126,10 +128,21 @@ pub fn find_kashida_points(
     } else {
         text.to_string()
     };
-    let graphemes = split_graphemes(&cleaned);
+    let boundaries: Vec<usize> = JoinedRunSegmenter::new().segment_str(&cleaned).collect();
     let mut points = Vec::new();
-    for run in joined_runs(&graphemes) {
-        points.extend(resolve_run(&graphemes, &run, set));
+    let mut grapheme_offset = 0;
+    for pair in boundaries.windows(2) {
+        let graphemes = split_graphemes(&cleaned[pair[0]..pair[1]]);
+        let run = find_run_indices(&graphemes);
+        points.extend(
+            resolve_run(&graphemes, &run, set)
+                .into_iter()
+                .map(|point| KashidaPoint {
+                    index: point.index + grapheme_offset,
+                    ..point
+                }),
+        );
+        grapheme_offset += graphemes.len() as u32;
     }
     (cleaned, points)
 }

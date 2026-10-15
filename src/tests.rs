@@ -1,10 +1,10 @@
 use crate::builtin::{builtin_pattern_set, builtin_pattern_set_names, is_builtin_pattern_set};
-use crate::find_kashida_points;
 use crate::grapheme::{
-    form_of, joined_runs, joins_left, joins_right, split_graphemes, JoiningForm,
+    find_run_indices, form_of, joins_left, joins_right, split_graphemes, JoiningForm,
 };
 use crate::pattern::compile_pattern_text;
 use crate::rasm::{rasm_matches, resolve_group_name};
+use crate::{find_kashida_points, JoinedRunSegmenter};
 use icu_properties::props::JoiningGroup;
 
 fn points(word: &str, text: &str) -> Vec<(u32, u8)> {
@@ -103,6 +103,73 @@ fn joins_right_tests() {
             expected,
             "{word:?} @ {index}"
         );
+    }
+}
+
+#[test]
+fn joined_run_boundaries() {
+    let runs = |text: &'static str| -> Vec<&'static str> {
+        let boundaries: Vec<usize> = JoinedRunSegmenter::new().segment_str(text).collect();
+        boundaries.windows(2).map(|w| &text[w[0]..w[1]]).collect()
+    };
+    assert_eq!(runs("خط الزوال"), ["خط", " ", "ا", "لز", "و", "ا", "ل"]);
+    assert_eq!(runs("بِسْمِ"), ["بِسْمِ"]); // marks stay with their letters
+    assert_eq!(runs("بـت"), ["بـت"]); // a tatweel joins both sides
+    assert_eq!(runs("ب\u{200C}ت"), ["ب\u{200C}", "ت"]); // a ZWNJ breaks the join
+    assert_eq!(runs("ab"), ["a", "b"]); // non-joining letters are segments of their own
+    assert_eq!(
+        JoinedRunSegmenter::new()
+            .segment_str("")
+            .collect::<Vec<_>>(),
+        [0]
+    );
+}
+
+#[test]
+fn joined_run_utf16_offsets() {
+    let boundaries = |text: &str| -> Vec<usize> {
+        let utf16: Vec<u16> = text.encode_utf16().collect();
+        JoinedRunSegmenter::new().segment_utf16(&utf16).collect()
+    };
+    assert_eq!(boundaries("خط الزوال"), [0, 2, 3, 4, 6, 7, 8, 9]);
+    assert_eq!(boundaries("a😀ب"), [0, 1, 3, 4]); // the emoji takes two code units
+    assert_eq!(boundaries(""), [0]);
+}
+
+#[test]
+fn joined_run_utf16_unpaired_surrogates() {
+    let cases: &[(&[u16], &[usize])] = &[
+        (&[0xD800], &[0, 1]),
+        (&[0xDC00], &[0, 1]),
+        (&[0xDC00, 0xD800, 0x0628, 0x062A], &[0, 1, 2, 4]),
+        (
+            &[0xD83D, 0xDE00, 0xD800, 0x0628, 0x062A, 0xDC00],
+            &[0, 2, 3, 5, 6],
+        ),
+    ];
+    for &(input, expected) in cases {
+        assert_eq!(
+            JoinedRunSegmenter::new()
+                .segment_utf16(input)
+                .collect::<Vec<_>>(),
+            expected,
+            "{input:X?}"
+        );
+    }
+}
+
+#[test]
+fn kashida_indices_across_joined_runs() {
+    let set = compile_pattern_text("* 5 *").unwrap();
+    for (text, remove_existing) in [("a😀دبِـٰت بتم", false), ("a😀دبِـٰت بـتم", true)]
+    {
+        let (cleaned, points) = find_kashida_points(text, &set, remove_existing);
+        assert_eq!(cleaned, "a😀دبِـٰت بتم");
+        let points: Vec<_> = points
+            .iter()
+            .map(|point| (point.index, point.priority))
+            .collect();
+        assert_eq!(points, [(4, 5), (7, 5), (8, 5)]);
     }
 }
 
@@ -594,6 +661,13 @@ fn zwnj_breaks_the_join() {
 }
 
 #[test]
+fn zwnj_after_a_marked_tatweel_breaks_the_join() {
+    // The ZWNJ still breaks the run when the tatweel carries a mark.
+    assert_eq!(points("بـٰ\u{200C}ت", "ب2ت"), Vec::new());
+    assert_eq!(points("بـٰ\u{200C}ت", "* 5 *"), Vec::new());
+}
+
+#[test]
 fn stray_pattern_characters_are_rejected() {
     assert!(err_msg("{=Seen x} 5 ت").contains("Stray character")); // Non_Joining
     assert!(err_msg("ب\u{0662}ت").contains("Stray character")); // Arabic-Indic ٢
@@ -743,15 +817,18 @@ fn every_connection_in_a_run_already_joins() {
     let words =
         "بيت لا دب بد مررت الله سـبح ب\u{200C}ت ب\u{200D}ت نَّص \u{064E}بت بـ وا أبد كتاب لآ دا";
     for word in words.split(' ') {
-        let graphemes = split_graphemes(word);
-        for run in joined_runs(&graphemes) {
-            // Every member but the last one hosts a connection.
-            let (_, hosts) = run.split_last().expect("a run is never empty");
-            for &index in hosts {
-                assert!(
-                    joins_left(&graphemes, index),
-                    "{word:?}: grapheme {index} does not join forward"
-                );
+        let boundaries: Vec<usize> = JoinedRunSegmenter::new().segment_str(word).collect();
+        for pair in boundaries.windows(2) {
+            let segment = &word[pair[0]..pair[1]];
+            let graphemes = split_graphemes(segment);
+            // All graphemes in the run except the last one join forward.
+            if let Some((_, indices)) = find_run_indices(&graphemes).split_last() {
+                for &index in indices {
+                    assert!(
+                        joins_left(&graphemes, index),
+                        "{segment:?}: grapheme {index} does not join forward"
+                    );
+                }
             }
         }
     }

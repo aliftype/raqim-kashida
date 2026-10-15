@@ -1,8 +1,7 @@
 //! Grapheme clustering and Arabic-like joining analysis.
 //!
-//! Segments text into UAX #29 grapheme clusters, tags each with its base
-//! codepoint's Joining_Type / Joining_Group, and derives the joining
-//! behavior: joined runs, joins-left/right, and positional form.
+//! Splits text into UAX #29 grapheme clusters and determines their joining
+//! types, joining groups, and positional forms.
 
 use icu_properties::props::{JoiningGroup, JoiningType};
 use icu_properties::CodePointMapData;
@@ -37,44 +36,46 @@ pub(crate) fn is_bare_tatweel_at(chars: &[char], k: usize) -> bool {
 }
 
 pub(crate) fn split_graphemes(text: &str) -> Vec<Grapheme> {
+    let boundaries: Vec<usize> = GraphemeClusterSegmenter::new().segment_str(text).collect();
+    boundaries
+        .windows(2)
+        .map(|pair| analyze_grapheme(&text[pair[0]..pair[1]]))
+        .collect()
+}
+
+pub(crate) fn analyze_grapheme(cluster: &str) -> Grapheme {
     let joining_types = CodePointMapData::<JoiningType>::new();
     let joining_groups = CodePointMapData::<JoiningGroup>::new();
-    let boundaries: Vec<usize> = GraphemeClusterSegmenter::new().segment_str(text).collect();
-    let mut out = Vec::with_capacity(boundaries.len().saturating_sub(1));
-    for pair in boundaries.windows(2) {
-        let cluster = &text[pair[0]..pair[1]];
-        let base = cluster.chars().next().expect("non-empty cluster");
-        let mut joining_type = joining_types.get(base);
-        // A ZWJ/ZWNJ change joining type.
-        if cluster
+    let base = cluster.chars().next().expect("non-empty cluster");
+    let mut joining_type = joining_types.get(base);
+    // ZWJ and ZWNJ can change the cluster's joining type.
+    if cluster
+        .chars()
+        .skip(1)
+        .any(|c| joining_types.get(c) == JoiningType::NonJoining)
+    {
+        joining_type = match joining_type {
+            JoiningType::DualJoining | JoiningType::JoinCausing => JoiningType::RightJoining,
+            JoiningType::LeftJoining | JoiningType::Transparent => JoiningType::NonJoining,
+            other => other,
+        };
+    } else if joining_type == JoiningType::DualJoining
+        && cluster
             .chars()
             .skip(1)
-            .any(|c| joining_types.get(c) == JoiningType::NonJoining)
-        {
-            joining_type = match joining_type {
-                JoiningType::DualJoining | JoiningType::JoinCausing => JoiningType::RightJoining,
-                JoiningType::LeftJoining | JoiningType::Transparent => JoiningType::NonJoining,
-                other => other,
-            };
-        } else if joining_type == JoiningType::DualJoining
+            .any(|c| joining_types.get(c) == JoiningType::JoinCausing)
+    {
+        joining_type = JoiningType::JoinCausing;
+    }
+    Grapheme {
+        base_codepoint: base as u32,
+        joining_group: joining_groups.get(base),
+        joining_type,
+        is_mark_seat: base == KASHIDA
             && cluster
                 .chars()
-                .skip(1)
-                .any(|c| joining_types.get(c) == JoiningType::JoinCausing)
-        {
-            joining_type = JoiningType::JoinCausing;
-        }
-        out.push(Grapheme {
-            base_codepoint: base as u32,
-            joining_group: joining_groups.get(base),
-            joining_type,
-            is_mark_seat: base == KASHIDA
-                && cluster
-                    .chars()
-                    .any(|c| joining_types.get(c) == JoiningType::Transparent),
-        });
+                .any(|c| joining_types.get(c) == JoiningType::Transparent),
     }
-    out
 }
 
 pub(crate) fn is_joining_type(joining_type: JoiningType) -> bool {
@@ -123,34 +124,10 @@ pub(crate) fn form_of(graphemes: &[Grapheme], index: usize) -> JoiningForm {
     }
 }
 
-// Joined runs: maximal spans of joining letters connected together.
-pub(crate) fn joined_runs(graphemes: &[Grapheme]) -> Vec<Vec<usize>> {
-    let mut out: Vec<Vec<usize>> = Vec::new();
-    let mut current: Vec<usize> = Vec::new();
-    for (i, g) in graphemes.iter().enumerate() {
-        // A tatweel that serves as a seat still joins on both sides but is not
-        // a letter of the run, so it is transparent for our purpose.
-        if g.joining_type == JoiningType::Transparent || g.is_mark_seat {
-            continue;
-        }
-        if !is_joining_type(g.joining_type) {
-            if !current.is_empty() {
-                out.push(std::mem::take(&mut current));
-            }
-            continue;
-        }
-        if let Some(&last) = current.last() {
-            let prev = &graphemes[last];
-            let prev_joins_forward = prev.joining_type != JoiningType::RightJoining;
-            let cur_joins_backward = g.joining_type != JoiningType::LeftJoining;
-            if !prev_joins_forward || !cur_joins_backward {
-                out.push(std::mem::take(&mut current));
-            }
-        }
-        current.push(i);
-    }
-    if !current.is_empty() {
-        out.push(current);
-    }
-    out
+// Grapheme indices used for pattern matching within one segment.
+// Tatweels carrying marks are skipped.
+pub(crate) fn find_run_indices(graphemes: &[Grapheme]) -> Vec<usize> {
+    (0..graphemes.len())
+        .filter(|&i| is_joining_type(graphemes[i].joining_type) && !graphemes[i].is_mark_seat)
+        .collect()
 }
